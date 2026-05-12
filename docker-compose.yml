@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bobaxshop-db
+    environment:
+      POSTGRES_USER: bobax
+      POSTGRES_PASSWORD: bobax123
+      POSTGRES_DB: bobaxshop
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

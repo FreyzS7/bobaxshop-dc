@@ -30,9 +30,11 @@ async function seed() {
   const password = process.argv[3] ?? "Admin123!"
   const name = process.argv[4] ?? "Super Admin"
 
-  const existing = await db.query.webUsers.findFirst()
+  const existing = await db.query.webUsers.findFirst({
+    where: (u, { eq }) => eq(u.email, email),
+  })
   if (existing) {
-    console.log("❌ Sudah ada user. Gunakan Settings untuk menambah lebih lanjut.")
+    console.log(`❌ User dengan email ${email} sudah ada.`)
     await pool.end()
     process.exit(0)
   }

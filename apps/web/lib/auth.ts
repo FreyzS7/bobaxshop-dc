@@ -29,24 +29,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const user = await db.query.webUsers.findFirst({
-          where: eq(webUsers.email, credentials.email as string),
-        })
+        try {
+          const user = await db.query.webUsers.findFirst({
+            where: eq(webUsers.email, credentials.email as string),
+          })
 
-        if (!user) return null
+          if (!user) {
+            console.error("[auth] user not found:", credentials.email)
+            return null
+          }
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash
-        )
+          const isValid = await bcrypt.compare(
+            credentials.password as string,
+            user.passwordHash
+          )
 
-        if (!isValid) return null
+          if (!isValid) {
+            console.error("[auth] password mismatch for:", credentials.email)
+            return null
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          }
+        } catch (err) {
+          console.error("[auth] authorize error:", err)
+          return null
         }
       },
     }),

@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'bobaxshop-bot',
-      script: 'node_modules/.bin/tsx',
-      args: 'apps/bot/src/index.ts',
+      script: 'pnpm',
+      args: '--filter bot dev',
       cwd: '/home/ubuntu/BotBobax',
       env_file: '/home/ubuntu/BotBobax/.env',
       restart_delay: 5000,
@@ -16,13 +16,12 @@ module.exports = {
     },
     {
       name: 'bobaxshop-web',
-      script: 'node_modules/.bin/next',
-      args: 'start',
-      cwd: '/home/ubuntu/BotBobax/apps/web',
+      script: 'pnpm',
+      args: '--filter web dev',
+      cwd: '/home/ubuntu/BotBobax',
       env_file: '/home/ubuntu/BotBobax/.env',
       env: {
         PORT: 3000,
-        NODE_ENV: 'production',
       },
       restart_delay: 5000,
       max_restarts: 10,

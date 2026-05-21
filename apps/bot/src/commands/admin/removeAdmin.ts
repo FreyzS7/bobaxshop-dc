@@ -17,6 +17,8 @@ export const data = new SlashCommandBuilder()
   )
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply({ ephemeral: true })
+
   if (!(await requireAdmin(interaction))) return
 
   const target = interaction.options.getUser('user', true)
@@ -24,7 +26,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const exists = await isAdmin(guildId, target.id)
   if (!exists) {
-    await interaction.reply({ content: `⚠️ ${target.username} bukan admin.`, ephemeral: true })
+    await interaction.editReply(`⚠️ ${target.username} bukan admin.`)
     return
   }
 
@@ -34,5 +36,5 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .setColor(COLORS.error)
     .setDescription(`✅ **${target.username}** berhasil dihapus dari daftar admin.`)
 
-  await interaction.reply({ embeds: [embed] })
+  await interaction.editReply({ embeds: [embed] })
 }

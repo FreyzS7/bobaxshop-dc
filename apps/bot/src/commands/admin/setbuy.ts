@@ -11,31 +11,33 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   if (!(await requireAdmin(interaction))) return
 
+  await interaction.deferReply({ ephemeral: true })
+
   const guild = await getGuild(interaction.guild!.id)
 
   if (!guild?.setupDone) {
-    await interaction.reply({ content: '❌ Jalankan `/setup` terlebih dahulu.', ephemeral: true })
+    await interaction.editReply('❌ Jalankan `/setup` terlebih dahulu.')
     return
   }
   if (!guild.chBuy) {
-    await interaction.reply({ content: '❌ Channel #buy tidak ditemukan di database.', ephemeral: true })
+    await interaction.editReply('❌ Channel #buy tidak ditemukan di database.')
     return
   }
   if (!guild.robuxRate) {
-    await interaction.reply({ content: '❌ Set rate dulu dengan `/setrate` sebelum mengirim embed.', ephemeral: true })
+    await interaction.editReply('❌ Set rate dulu dengan `/setrate` sebelum mengirim embed.')
     return
   }
 
   const buyChannel = interaction.guild!.channels.cache.get(guild.chBuy)
   if (!buyChannel?.isTextBased()) {
-    await interaction.reply({ content: '❌ Channel #buy tidak ditemukan di server.', ephemeral: true })
+    await interaction.editReply('❌ Channel #buy tidak ditemukan di server.')
     return
   }
 
   await buyChannel.send({
-    embeds: [buildBuyEmbed(Number(guild.robuxRate))],
+    embeds: [buildBuyEmbed(Number(guild.robuxRate), guild.minRobux ?? 1000, guild.stepRobux ?? 500, guild.robuxRateGamepass ? Number(guild.robuxRateGamepass) : undefined)],
     components: [buildBuyButtonRow()],
   })
 
-  await interaction.reply({ content: '✅ Embed berhasil dikirim ke #buy.', ephemeral: true })
+  await interaction.editReply('✅ Embed berhasil dikirim ke #buy.')
 }

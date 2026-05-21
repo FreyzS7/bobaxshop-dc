@@ -1,0 +1,3 @@
+ALTER TABLE `guilds`
+  ADD COLUMN `min_robux` int NOT NULL DEFAULT 1000,
+  ADD COLUMN `step_robux` int NOT NULL DEFAULT 500;

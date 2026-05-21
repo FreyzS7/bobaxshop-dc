@@ -12,7 +12,11 @@ export async function createDraftOrder(state: PendingOrderState, paymentMethod: 
   const guild = await getGuild(state.guildId)
   if (!guild?.robuxRate) throw new Error('Rate belum diset')
 
-  const rate = Number(guild.robuxRate)
+  // Gamepass pakai rate gamepass jika ada, fallback ke rate community
+  const rate = state.method === 'gamepass' && guild.robuxRateGamepass
+    ? Number(guild.robuxRateGamepass)
+    : Number(guild.robuxRate)
+
   const robuxAmount = state.robuxAmount!
   const robuxGross = state.method === 'gamepass' ? calcRobuxGross(robuxAmount) : robuxAmount
   const priceIdr = calcPrice(robuxAmount, rate)
@@ -33,6 +37,7 @@ export async function createDraftOrder(state: PendingOrderState, paymentMethod: 
     orderStatus: 'waiting_payment',
   })
 
+  if (!order) throw new Error('Gagal menyimpan order ke database')
   await addOrderLog(order.id, 'created', state.buyerId, `Order dibuat via ${state.method}`)
 
   return order

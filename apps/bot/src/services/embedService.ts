@@ -2,15 +2,24 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'disc
 import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
 import type { Order } from '@bobaxshop/database'
 
-export function buildBuyEmbed(robuxRate: number) {
+export function buildBuyEmbed(robuxRate: number, minRobux = 1000, stepRobux = 500, robuxRateGamepass?: number) {
+  const hasGamepassRate = robuxRateGamepass && robuxRateGamepass !== robuxRate
+
   return new EmbedBuilder()
     .setColor(COLORS.info)
     .setTitle('🛒 Beli Robux — BobaxShop')
     .setDescription('Beli Robux dengan harga terpercaya dan aman!\n\nKlik tombol di bawah untuk mulai transaksi.')
     .addFields(
-      { name: '💰 Rate Saat Ini', value: `**${formatIDR(robuxRate)}** per Robux`, inline: true },
-      { name: '🎮 Metode', value: '• **Via Gamepass** — Buyer buat gamepass\n• **Via Community Join** — Buyer join grup Roblox', inline: false },
-      { name: '📌 Ketentuan', value: 'Min. **1.000 Robux** • Kelipatan **500**', inline: false },
+      { name: '👥 Rate Community', value: `**${formatIDR(robuxRate)}** per Robux`, inline: true },
+      ...(hasGamepassRate
+        ? [{ name: '🎮 Rate Gamepass', value: `**${formatIDR(robuxRateGamepass!)}** per Robux`, inline: true }]
+        : []),
+      {
+        name: '🎮 Metode',
+        value: '• **Via Gamepass** — Buyer buat gamepass di experience\n• **Via Community Join** — Buyer join grup Roblox',
+        inline: false,
+      },
+      { name: '📌 Ketentuan', value: `Min. **${formatRobux(minRobux)} Robux** • Kelipatan **${formatRobux(stepRobux)}**`, inline: false },
     )
     .setFooter({ text: 'BobaxShop • Transaksi aman & terpercaya' })
 }
@@ -53,7 +62,7 @@ export function buildWaitingPaymentEmbed(order: Order, paymentMethod: string) {
     .addFields(
       { name: '🧾 Order ID', value: order.orderNumber, inline: true },
       { name: '🎮 Metode', value: order.method === 'gamepass' ? 'Via Gamepass' : 'Via Community', inline: true },
-      { name: '💎 Robux', value: `**${formatRobux(order.robuxAmount)}** Robux`, inline: true },
+      { name: '💳 Robux', value: `**${formatRobux(order.robuxAmount)}** Robux`, inline: true },
       ...(order.method === 'gamepass'
         ? [{ name: '🎯 Set Harga Gamepass', value: `**${formatRobux(order.robuxGross)}** Robux (termasuk tax 30%)`, inline: false }]
         : []),
@@ -64,6 +73,22 @@ export function buildWaitingPaymentEmbed(order: Order, paymentMethod: string) {
     .setFooter({ text: 'Selesaikan pembayaran sebelum waktu habis' })
 }
 
+const ORDER_STATUS_LABEL: Record<string, string> = {
+  waiting_payment: '⏳ Menunggu Pembayaran',
+  paid: '💳 Dibayar',
+  processing: '🔄 Diproses',
+  completed: '✅ Selesai',
+  cancelled: '❌ Dibatalkan',
+  refunded: '💰 Direfund',
+}
+
+const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  pending: '⏳ Pending',
+  paid: '✅ Lunas',
+  expired: '⏰ Kadaluarsa',
+  failed: '❌ Gagal',
+}
+
 export function buildOrderAdminEmbed(order: Order) {
   const embed = new EmbedBuilder()
     .setColor(COLORS.warning)
@@ -71,10 +96,12 @@ export function buildOrderAdminEmbed(order: Order) {
     .addFields(
       { name: '👤 Buyer', value: `<@${order.buyerId}> (${order.buyerUsername})`, inline: true },
       { name: '🎮 Metode', value: order.method === 'gamepass' ? 'Via Gamepass' : 'Via Community', inline: true },
-      { name: '💎 Robux (net)', value: formatRobux(order.robuxAmount), inline: true },
-      { name: '💎 Robux (gross)', value: formatRobux(order.robuxGross), inline: true },
+      { name: '💳 Robux (net)', value: formatRobux(order.robuxAmount), inline: true },
+      { name: '💳 Robux (gross)', value: formatRobux(order.robuxGross), inline: true },
       { name: '💰 Total', value: formatIDR(order.priceIdr), inline: true },
       { name: '💳 Payment', value: `${order.paymentMethod} ✅`, inline: true },
+      { name: '📊 Status Order', value: ORDER_STATUS_LABEL[order.orderStatus] ?? order.orderStatus, inline: true },
+      { name: '💵 Status Bayar', value: PAYMENT_STATUS_LABEL[order.paymentStatus] ?? order.paymentStatus, inline: true },
     )
 
   if (order.robloxUsername) {
@@ -96,13 +123,13 @@ export function buildAdminActionRow(orderId: string, disabled = false) {
       .setStyle(ButtonStyle.Success)
       .setDisabled(disabled),
     new ButtonBuilder()
-      .setCustomId(`order_pending:${orderId}`)
-      .setLabel('⏳ Pending')
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(disabled),
-    new ButtonBuilder()
       .setCustomId(`order_cancel:${orderId}`)
       .setLabel('❌ Cancel')
+      .setStyle(ButtonStyle.Danger)
+      .setDisabled(disabled),
+    new ButtonBuilder()
+      .setCustomId(`order_invalid_proof:${orderId}`)
+      .setLabel('🚫 Bukti Invalid')
       .setStyle(ButtonStyle.Danger)
       .setDisabled(disabled)
   )

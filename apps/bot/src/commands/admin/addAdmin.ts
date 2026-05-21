@@ -17,19 +17,21 @@ export const data = new SlashCommandBuilder()
   )
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply({ ephemeral: true })
+
   if (!(await requireAdmin(interaction))) return
 
   const target = interaction.options.getUser('user', true)
   const guildId = interaction.guild!.id
 
   if (target.bot) {
-    await interaction.reply({ content: '❌ Tidak bisa menambahkan bot sebagai admin.', ephemeral: true })
+    await interaction.editReply('❌ Tidak bisa menambahkan bot sebagai admin.')
     return
   }
 
   const already = await isAdmin(guildId, target.id)
   if (already) {
-    await interaction.reply({ content: `⚠️ ${target.username} sudah menjadi admin.`, ephemeral: true })
+    await interaction.editReply(`⚠️ ${target.username} sudah menjadi admin.`)
     return
   }
 
@@ -39,5 +41,5 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .setColor(COLORS.success)
     .setDescription(`✅ **${target.username}** berhasil ditambahkan sebagai admin BobaxShop.`)
 
-  await interaction.reply({ embeds: [embed] })
+  await interaction.editReply({ embeds: [embed] })
 }

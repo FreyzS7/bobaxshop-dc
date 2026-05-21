@@ -14,6 +14,8 @@ export const data = new SlashCommandBuilder()
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply({ ephemeral: true })
+
   if (!(await requireAdmin(interaction))) return
 
   const admins = await getAdmins(interaction.guild!.id)
@@ -28,5 +30,5 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     embed.setDescription(admins.map((a, i) => `${i + 1}. <@${a.discordUserId}>`).join('\n'))
   }
 
-  await interaction.reply({ embeds: [embed], ephemeral: true })
+  await interaction.editReply({ embeds: [embed] })
 }

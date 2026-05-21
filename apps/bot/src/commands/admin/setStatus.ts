@@ -31,6 +31,8 @@ export const data = new SlashCommandBuilder()
   )
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply({ ephemeral: true })
+
   if (!(await requireAdmin(interaction))) return
 
   const status = interaction.options.getString('status', true) as 'open' | 'closed' | 'busy'
@@ -39,7 +41,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const guild = await getGuild(guildId)
   if (!guild?.setupDone) {
-    await interaction.reply({ content: '❌ Jalankan `/setup` terlebih dahulu.', ephemeral: true })
+    await interaction.editReply('❌ Jalankan `/setup` terlebih dahulu.')
     return
   }
 
@@ -59,7 +61,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   if (pesan) embed.setDescription(pesan)
 
-  await interaction.reply({ embeds: [embed] })
+  await interaction.editReply({ embeds: [embed] })
 
   // Kirim ke #announce
   if (guild.chAnnounce) {

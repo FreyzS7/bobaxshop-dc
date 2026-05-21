@@ -5,12 +5,17 @@ import { checkIsAdmin } from '../utils/permissions'
  * Guard middleware untuk command admin.
  * Return true jika boleh lanjut, false jika ditolak (sudah reply error).
  */
+async function sendError(interaction: RepliableInteraction, content: string) {
+  if (interaction.deferred || interaction.replied) {
+    await interaction.editReply({ content })
+  } else {
+    await interaction.reply({ content, ephemeral: true })
+  }
+}
+
 export async function requireAdmin(interaction: RepliableInteraction): Promise<boolean> {
   if (!interaction.guild || !interaction.member) {
-    await interaction.reply({
-      content: '❌ Command ini hanya bisa digunakan di server.',
-      ephemeral: true,
-    })
+    await sendError(interaction, '❌ Command ini hanya bisa digunakan di server.')
     return false
   }
 
@@ -18,10 +23,7 @@ export async function requireAdmin(interaction: RepliableInteraction): Promise<b
   const allowed = await checkIsAdmin(member, interaction.guild.id)
 
   if (!allowed) {
-    await interaction.reply({
-      content: '❌ Kamu tidak punya izin untuk menjalankan command ini.',
-      ephemeral: true,
-    })
+    await sendError(interaction, '❌ Kamu tidak punya izin untuk menjalankan command ini.')
     return false
   }
 

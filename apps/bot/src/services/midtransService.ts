@@ -14,6 +14,7 @@ function getCoreApi() {
 export interface QrisTransaction {
   midtransOrderId: string
   qrCodeUrl: string
+  qrString?: string
   expiryTime: string
 }
 
@@ -44,10 +45,15 @@ export async function createQrisTransaction(
 
   if (!qrCodeUrl) throw new Error('QR code URL tidak tersedia dari Midtrans')
 
+  const qrString = response.qr_string
+  console.log('[Midtrans QRIS] response keys:', Object.keys(response))
+  console.log('[Midtrans QRIS] qr_string:', qrString)
+
   return {
     midtransOrderId: orderNumber,
     qrCodeUrl,
-    expiryTime: response.expiry_time as string,
+    qrString,
+    expiryTime: response.expiry_time,
   }
 }
 

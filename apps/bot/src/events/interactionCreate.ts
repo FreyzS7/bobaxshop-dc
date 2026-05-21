@@ -2,14 +2,15 @@ import { Events, type Interaction } from 'discord.js'
 import { client } from '../client'
 import { handleBuyStart } from '../interactions/buttons/buyButton'
 import { handleMethodSelect } from '../interactions/buttons/methodSelect'
-import { handleInputGamepassLink } from '../interactions/buttons/inputGamepassLink'
 import { handleInputRobloxUsername } from '../interactions/buttons/inputRobloxUsername'
 import { handleOrderAction } from '../interactions/buttons/orderAction'
 import { handlePayQris } from '../interactions/buttons/payQrisButton'
 import { handleRobloxUsernameModal } from '../interactions/modals/robloxUsernameModal'
 import { handleRobuxAmountModal } from '../interactions/modals/robuxAmountModal'
-import { handleGamepassLinkModal } from '../interactions/modals/gamepasLinkModal'
 import { handleCancelReasonModal } from '../interactions/modals/cancelReasonModal'
+import { handleRefundReasonModal } from '../interactions/modals/refundReasonModal'
+import { handleInvalidProofModal } from '../interactions/modals/invalidProofModal'
+import { handleConfirmProof } from '../interactions/buttons/confirmProofButton'
 import { handlePaymentMethodSelect } from '../interactions/selectMenus/paymentMethodMenu'
 
 export const name = Events.InteractionCreate
@@ -32,12 +33,14 @@ export async function execute(interaction: Interaction) {
       if (id === 'buy_start') return handleBuyStart(interaction)
       if (id === 'method_gamepass') return handleMethodSelect(interaction, 'gamepass')
       if (id === 'method_community') return handleMethodSelect(interaction, 'community')
-      if (id === 'input_gamepass_link') return handleInputGamepassLink(interaction)
       if (id === 'input_roblox_username') return handleInputRobloxUsername(interaction)
       if (id === 'pay_qris') return handlePayQris(interaction)
       if (id.startsWith('order_done:')) return handleOrderAction(interaction, 'done', id.split(':')[1])
       if (id.startsWith('order_pending:')) return handleOrderAction(interaction, 'pending', id.split(':')[1])
       if (id.startsWith('order_cancel:')) return handleOrderAction(interaction, 'cancel', id.split(':')[1])
+      if (id.startsWith('order_refund:')) return handleOrderAction(interaction, 'refund', id.split(':')[1])
+      if (id.startsWith('confirm_proof:')) return handleConfirmProof(interaction, id.split(':')[1])
+      if (id.startsWith('order_invalid_proof:')) return handleOrderAction(interaction, 'invalid_proof', id.split(':')[1])
       return
     }
 
@@ -49,9 +52,10 @@ export async function execute(interaction: Interaction) {
         const method = id.split(':')[1] as 'gamepass' | 'community'
         return handleRobuxAmountModal(interaction, method)
       }
-      if (id === 'modal_gamepass_link') return handleGamepassLinkModal(interaction)
-      if (id === 'modal_roblox_username') return handleRobloxUsernameModal(interaction)
+if (id === 'modal_roblox_username') return handleRobloxUsernameModal(interaction)
       if (id.startsWith('modal_cancel_reason:')) return handleCancelReasonModal(interaction, id.split(':')[1])
+      if (id.startsWith('modal_refund_reason:')) return handleRefundReasonModal(interaction, id.split(':')[1])
+      if (id.startsWith('modal_invalid_proof:')) return handleInvalidProofModal(interaction, id.split(':')[1])
       return
     }
 

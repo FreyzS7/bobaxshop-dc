@@ -34,7 +34,7 @@ export async function handleGamepassLinkModal(interaction: ModalSubmitInteractio
     .setTitle('📋 Ringkasan Order')
     .addFields(
       { name: '🎮 Metode', value: 'Via Gamepass', inline: true },
-      { name: '💎 Robux (kamu terima)', value: formatRobux(pending.robuxAmount!), inline: true },
+      { name: '💳 Robux (kamu terima)', value: formatRobux(pending.robuxAmount!), inline: true },
       { name: '🎯 Set Gamepass', value: formatRobux(pending.robuxGross!), inline: true },
       { name: '🔗 Link Gamepass', value: link, inline: false },
       { name: '💰 Total Bayar', value: formatIDR(pending.priceIdr!), inline: true },

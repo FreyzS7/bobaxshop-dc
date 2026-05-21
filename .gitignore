@@ -1,6 +1,31 @@
-node_modules
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment — NEVER commit real .env
 .env
-.next
-dist
-.turbo
+.env.local
+.env.production
+
+# Build outputs
+dist/
+.next/
+.turbo/
+build/
+out/
+
+# Logs
 *.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Windows scripts (local dev only)
+*.bat

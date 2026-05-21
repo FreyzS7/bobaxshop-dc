@@ -1,4 +1,5 @@
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, isNotNull } from 'drizzle-orm'
+import { randomUUID } from 'crypto'
 import { db } from '../client'
 import { orders, orderLogs } from '../schema'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
@@ -7,8 +8,9 @@ export type Order = InferSelectModel<typeof orders>
 export type NewOrder = InferInsertModel<typeof orders>
 
 export async function createOrder(data: NewOrder) {
-  const [order] = await db.insert(orders).values(data).returning()
-  return order
+  const id = data.id ?? randomUUID()
+  await db.insert(orders).values({ ...data, id })
+  return db.query.orders.findFirst({ where: eq(orders.id, id) })
 }
 
 export async function getOrder(orderId: string) {
@@ -29,20 +31,32 @@ export async function getOrderByMidtransId(midtransOrderId: string) {
   })
 }
 
+export async function getOrderByPendingChannelId(channelId: string) {
+  return db.query.orders.findFirst({
+    where: eq(orders.pendingChannelId, channelId),
+  })
+}
+
 export async function updateOrder(orderId: string, data: Partial<Order>) {
-  const [order] = await db
+  await db
     .update(orders)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(orders.id, orderId))
-    .returning()
-  return order
+  return db.query.orders.findFirst({ where: eq(orders.id, orderId) })
 }
 
-// Untuk bot polling: ambil order paid yang belum diproses
 export async function getPendingUnprocessedOrders() {
   return db.query.orders.findMany({
     where: and(eq(orders.orderStatus, 'paid'), isNull(orders.pendingChannelId)),
   })
+}
+
+export async function getActivePendingChannelIds(guildId: string): Promise<string[]> {
+  const rows = await db.query.orders.findMany({
+    where: and(eq(orders.guildId, guildId), isNotNull(orders.pendingChannelId)),
+    columns: { pendingChannelId: true },
+  })
+  return rows.map((r) => r.pendingChannelId!)
 }
 
 export async function addOrderLog(

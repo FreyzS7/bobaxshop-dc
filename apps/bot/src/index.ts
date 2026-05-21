@@ -5,14 +5,14 @@ import { getEnv } from '@bobaxshop/config'
 import { client } from './client'
 import { loadCommands } from './handlers/commandHandler'
 import { loadEvents } from './handlers/eventHandler'
-import { startWebhookServer } from './services/webhookServer'
+import { startHttpServer } from './server'
 
 const env = getEnv()
 
 async function main() {
   await loadCommands()
   await loadEvents()
-  startWebhookServer(client, env.WEBHOOK_PORT)
+  startHttpServer(client, env.WEBHOOK_PORT)
   await client.login(env.DISCORD_TOKEN)
 }
 

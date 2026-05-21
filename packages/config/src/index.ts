@@ -14,6 +14,8 @@ const envSchema = z.object({
   NEXTAUTH_URL: z.string().url().default('http://localhost:3000'),
   BOT_WEBHOOK_SECRET: z.string().optional(),
   WEBHOOK_PORT: z.string().transform(Number).default('3001'),
+  BOT_API_URL: z.string().url().default('http://localhost:3001'),
+  BOT_API_SECRET: z.string().default('bobax-internal-api-2026'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
 

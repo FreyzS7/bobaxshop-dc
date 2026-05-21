@@ -44,7 +44,7 @@ export async function handleRobloxUsernameModal(interaction: ModalSubmitInteract
     .setColor(COLORS.info)
     .setTitle('📋 Ringkasan Order')
     .addFields(
-      { name: '💎 Robux yang kamu terima', value: `**${formatRobux(pending.robuxAmount!)} Robux**`, inline: true },
+      { name: '💳 Robux yang kamu terima', value: `**${formatRobux(pending.robuxAmount!)} Robux**`, inline: true },
       { name: '💰 Total Bayar', value: `**${formatIDR(pending.priceIdr!)}**`, inline: true },
       { name: '👤 Username Roblox', value: `**${robloxUser.name}** (ID: ${robloxUser.id})`, inline: false },
       {

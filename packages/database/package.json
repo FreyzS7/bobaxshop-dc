@@ -13,10 +13,10 @@
   "dependencies": {
     "dotenv": "^16.0.0",
     "drizzle-orm": "0.45.2",
-    "pg": "^8.13.0"
+    "mysql2": "^3.11.0"
   },
   "devDependencies": {
-    "@types/pg": "^8.11.0",
+    "@types/node": "^20.0.0",
     "drizzle-kit": "^0.31.0",
     "typescript": "^5.0.0"
   }

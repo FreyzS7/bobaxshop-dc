@@ -1,112 +1,118 @@
 import {
-  pgTable,
+  mysqlTable,
   varchar,
   boolean,
   decimal,
   timestamp,
-  serial,
-  integer,
-  uuid,
-  pgEnum,
+  int,
+  mysqlEnum,
   unique,
-} from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
-
-// Enums
-export const methodEnum = pgEnum('method', ['gamepass', 'community'])
-export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'paid', 'expired', 'failed'])
-export const orderStatusEnum = pgEnum('order_status', [
-  'waiting_payment',
-  'paid',
-  'processing',
-  'completed',
-  'cancelled',
-])
-export const webRoleEnum = pgEnum('web_role', ['superadmin', 'viewer'])
+} from 'drizzle-orm/mysql-core'
+import { randomUUID } from 'crypto'
 
 // Tabel guilds
-export const guilds = pgTable('guilds', {
-  id: varchar('id').primaryKey(),
-  name: varchar('name').notNull(),
+export const guilds = mysqlTable('guilds', {
+  id: varchar('id', { length: 32 }).primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
   setupDone: boolean('setup_done').default(false).notNull(),
-  adminRoleId: varchar('admin_role_id'),
+  adminRoleId: varchar('admin_role_id', { length: 32 }),
   robuxRate: decimal('robux_rate', { precision: 10, scale: 2 }),
+  robuxRateGamepass: decimal('robux_rate_gamepass', { precision: 10, scale: 2 }),
   taxPercent: decimal('tax_percent', { precision: 5, scale: 2 }).default('30').notNull(),
+  minRobux: int('min_robux').default(1000).notNull(),
+  stepRobux: int('step_robux').default(500).notNull(),
+  paymentMode: mysqlEnum('payment_mode', ['manual', 'midtrans']).default('manual').notNull(),
   isOpen: boolean('is_open').default(true).notNull(),
-  statusMessage: varchar('status_message'),
-  categoryId: varchar('category_id'),
-  chCommands: varchar('ch_commands'),
-  chLogs: varchar('ch_logs'),
-  chAnnounce: varchar('ch_announce'),
-  chOrder: varchar('ch_order'),
-  chBuy: varchar('ch_buy'),
-  pendingCatId: varchar('pending_cat_id'),
+  statusMessage: varchar('status_message', { length: 500 }),
+  categoryId: varchar('category_id', { length: 32 }),
+  chCommands: varchar('ch_commands', { length: 32 }),
+  chLogs: varchar('ch_logs', { length: 32 }),
+  chAnnounce: varchar('ch_announce', { length: 32 }),
+  chOrder: varchar('ch_order', { length: 32 }),
+  chBuy: varchar('ch_buy', { length: 32 }),
+  pendingCatId: varchar('pending_cat_id', { length: 32 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 // Tabel admins
-export const admins = pgTable(
+export const admins = mysqlTable(
   'admins',
   {
-    id: serial('id').primaryKey(),
-    guildId: varchar('guild_id')
+    id: int('id').autoincrement().primaryKey(),
+    guildId: varchar('guild_id', { length: 32 })
       .notNull()
       .references(() => guilds.id),
-    discordUserId: varchar('discord_user_id').notNull(),
-    addedBy: varchar('added_by').notNull(),
+    discordUserId: varchar('discord_user_id', { length: 32 }).notNull(),
+    addedBy: varchar('added_by', { length: 32 }).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => [unique().on(t.guildId, t.discordUserId)]
 )
 
 // Tabel orders
-export const orders = pgTable('orders', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-  guildId: varchar('guild_id')
+export const orders = mysqlTable('orders', {
+  id: varchar('id', { length: 36 })
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  guildId: varchar('guild_id', { length: 32 })
     .notNull()
     .references(() => guilds.id),
-  orderNumber: varchar('order_number').unique().notNull(),
-  buyerId: varchar('buyer_id').notNull(),
-  buyerUsername: varchar('buyer_username').notNull(),
-  method: methodEnum('method').notNull(),
-  robuxAmount: integer('robux_amount').notNull(),
-  robuxGross: integer('robux_gross').notNull(),
-  gamepassLink: varchar('gamepass_link'),
-  robloxUsername: varchar('roblox_username'),
-  priceIdr: integer('price_idr').notNull(),
-  paymentMethod: varchar('payment_method').notNull(),
-  paymentStatus: paymentStatusEnum('payment_status').default('pending').notNull(),
-  orderStatus: orderStatusEnum('order_status').default('waiting_payment').notNull(),
-  midtransOrderId: varchar('midtrans_order_id').unique(),
-  midtransSnapToken: varchar('midtrans_snap_token'),
-  pendingChannelId: varchar('pending_channel_id'),
-  orderChannelMsgId: varchar('order_channel_msg_id'),
-  processedBy: varchar('processed_by'),
-  notes: varchar('notes'),
+  orderNumber: varchar('order_number', { length: 50 }).unique().notNull(),
+  buyerId: varchar('buyer_id', { length: 32 }).notNull(),
+  buyerUsername: varchar('buyer_username', { length: 100 }).notNull(),
+  method: mysqlEnum('method', ['gamepass', 'community']).notNull(),
+  robuxAmount: int('robux_amount').notNull(),
+  robuxGross: int('robux_gross').notNull(),
+  gamepassLink: varchar('gamepass_link', { length: 500 }),
+  robloxUsername: varchar('roblox_username', { length: 100 }),
+  priceIdr: int('price_idr').notNull(),
+  paymentMethod: varchar('payment_method', { length: 50 }).notNull(),
+  paymentStatus: mysqlEnum('payment_status', ['pending', 'paid', 'expired', 'failed'])
+    .default('pending')
+    .notNull(),
+  orderStatus: mysqlEnum('order_status', [
+    'waiting_payment',
+    'paid',
+    'processing',
+    'completed',
+    'cancelled',
+    'refunded',
+  ])
+    .default('waiting_payment')
+    .notNull(),
+  midtransOrderId: varchar('midtrans_order_id', { length: 100 }).unique(),
+  midtransSnapToken: varchar('midtrans_snap_token', { length: 500 }),
+  pendingChannelId: varchar('pending_channel_id', { length: 32 }),
+  orderChannelMsgId: varchar('order_channel_msg_id', { length: 32 }),
+  processedBy: varchar('processed_by', { length: 32 }),
+  proofImageUrl: varchar('proof_image_url', { length: 1000 }),
+  notes: varchar('notes', { length: 1000 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 // Tabel order_logs
-export const orderLogs = pgTable('order_logs', {
-  id: serial('id').primaryKey(),
-  orderId: uuid('order_id')
+export const orderLogs = mysqlTable('order_logs', {
+  id: int('id').autoincrement().primaryKey(),
+  orderId: varchar('order_id', { length: 36 })
     .notNull()
     .references(() => orders.id),
-  action: varchar('action').notNull(),
-  actor: varchar('actor'),
-  note: varchar('note'),
+  action: varchar('action', { length: 50 }).notNull(),
+  actor: varchar('actor', { length: 32 }),
+  note: varchar('note', { length: 1000 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
 // Tabel web_users
-export const webUsers = pgTable('web_users', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar('email').unique().notNull(),
-  passwordHash: varchar('password_hash').notNull(),
-  name: varchar('name').notNull(),
-  role: webRoleEnum('role').default('viewer').notNull(),
+export const webUsers = mysqlTable('web_users', {
+  id: varchar('id', { length: 36 })
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  email: varchar('email', { length: 255 }).unique().notNull(),
+  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+  role: mysqlEnum('role', ['superadmin', 'viewer']).default('viewer').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

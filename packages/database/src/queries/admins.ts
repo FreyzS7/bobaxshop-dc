@@ -19,8 +19,8 @@ export async function isAdmin(guildId: string, discordUserId: string) {
 }
 
 export async function addAdmin(data: NewAdmin) {
-  const [admin] = await db.insert(admins).values(data).returning()
-  return admin
+  const [result] = await db.insert(admins).values(data).$returningId()
+  return db.query.admins.findFirst({ where: eq(admins.id, result.id) })
 }
 
 export async function removeAdmin(guildId: string, discordUserId: string) {

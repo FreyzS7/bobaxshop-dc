@@ -4,22 +4,23 @@ import { COLORS } from '@bobaxshop/shared'
 import { buildMethodRow } from '../../services/embedService'
 
 export async function handleBuyStart(interaction: ButtonInteraction) {
+  await interaction.deferReply({ ephemeral: true })
+
   const guild = await getGuild(interaction.guild!.id)
 
   if (!guild?.isOpen) {
-    await interaction.reply({
+    await interaction.editReply({
       content: `🔴 Toko sedang **tutup**.${guild?.statusMessage ? `\n> ${guild.statusMessage}` : ''}`,
-      ephemeral: true,
     })
     return
   }
 
   if (!guild.robuxRate) {
-    await interaction.reply({ content: '❌ Rate belum diset oleh admin.', ephemeral: true })
+    await interaction.editReply({ content: '❌ Rate belum diset oleh admin.' })
     return
   }
 
-  await interaction.reply({
+  await interaction.editReply({
     embeds: [
       new EmbedBuilder()
         .setColor(COLORS.info)
@@ -31,6 +32,5 @@ export async function handleBuyStart(interaction: ButtonInteraction) {
         ),
     ],
     components: [buildMethodRow()],
-    ephemeral: true,
   })
 }

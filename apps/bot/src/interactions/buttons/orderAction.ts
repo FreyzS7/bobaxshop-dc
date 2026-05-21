@@ -6,7 +6,7 @@ import { requireAdmin } from '../../middleware/isAdmin'
 
 export async function handleOrderAction(
   interaction: ButtonInteraction,
-  action: 'done' | 'pending' | 'cancel',
+  action: 'done' | 'pending' | 'cancel' | 'refund' | 'invalid_proof',
   orderId: string
 ) {
   if (!(await requireAdmin(interaction))) return
@@ -32,6 +32,48 @@ export async function handleOrderAction(
     return
   }
 
+  // Refund: tampilkan modal untuk catatan refund (sebelum defer)
+  if (action === 'refund') {
+    const modal = new ModalBuilder()
+      .setCustomId(`modal_refund_reason:${orderId}`)
+      .setTitle('💰 Proses Refund')
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId('refund_reason')
+            .setLabel('Catatan refund')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Contoh: Transfer balik sudah dikirim ke rekening 1234xxxx')
+            .setMinLength(5)
+            .setMaxLength(500)
+            .setRequired(true)
+        )
+      )
+    await interaction.showModal(modal)
+    return
+  }
+
+  // Invalid proof: tampilkan modal untuk alasan (sebelum defer)
+  if (action === 'invalid_proof') {
+    const modal = new ModalBuilder()
+      .setCustomId(`modal_invalid_proof:${orderId}`)
+      .setTitle('🚫 Bukti Transfer Invalid')
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId('invalid_reason')
+            .setLabel('Alasan bukti tidak valid')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Contoh: Nominal tidak sesuai, screenshot tidak jelas, bukan bukti transfer QRIS')
+            .setMinLength(5)
+            .setMaxLength(300)
+            .setRequired(true)
+        )
+      )
+    await interaction.showModal(modal)
+    return
+  }
+
   await interaction.deferReply({ ephemeral: true })
 
   const order = await getOrder(orderId)
@@ -40,7 +82,7 @@ export async function handleOrderAction(
     return
   }
 
-  if (order.orderStatus === 'completed' || order.orderStatus === 'cancelled') {
+  if (order.orderStatus === 'completed' || order.orderStatus === 'cancelled' || order.orderStatus === 'refunded') {
     await interaction.editReply({ content: '⚠️ Order ini sudah selesai diproses.' })
     return
   }
@@ -60,7 +102,7 @@ export async function handleOrderAction(
             .setColor(COLORS.success)
             .setTitle('✅ Order Selesai!')
             .setDescription(
-              `Order **${order.orderNumber}** telah selesai!\n**${formatRobux(order.robuxAmount)} Robux** sudah dikirim.\n\nTerima kasih sudah berbelanja di BobaxShop! 🎮`
+              `Order **${order.orderNumber}** telah selesai!\n**${formatRobux(order.robuxAmount)} Robux** sudah dikirim.\n\nTerima kasih sudah berbelanja di BobaxShop! 💎`
             ),
         ],
       })

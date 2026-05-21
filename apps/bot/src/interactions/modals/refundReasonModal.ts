@@ -4,13 +4,13 @@ import { COLORS, formatIDR } from '@bobaxshop/shared'
 import { buildAdminActionRow } from '../../services/embedService'
 import { requireAdmin } from '../../middleware/isAdmin'
 
-export async function handleCancelReasonModal(
+export async function handleRefundReasonModal(
   interaction: ModalSubmitInteraction,
   orderId: string
 ) {
   if (!(await requireAdmin(interaction))) return
 
-  const reason = interaction.fields.getTextInputValue('cancel_reason').trim()
+  const notes = interaction.fields.getTextInputValue('refund_reason').trim()
 
   await interaction.deferReply({ ephemeral: true })
 
@@ -25,22 +25,19 @@ export async function handleCancelReasonModal(
     return
   }
 
-  await updateOrder(orderId, { orderStatus: 'cancelled', processedBy: interaction.user.id, notes: reason })
-  await addOrderLog(orderId, 'cancelled', interaction.user.id, reason)
+  await updateOrder(orderId, { orderStatus: 'refunded', processedBy: interaction.user.id, notes })
+  await addOrderLog(orderId, 'refunded', interaction.user.id, notes)
 
-  // DM buyer dengan alasan
+  // DM buyer
   try {
     const buyer = await interaction.client.users.fetch(order.buyerId)
     await buyer.send({
       embeds: [
         new EmbedBuilder()
-          .setColor(COLORS.error)
-          .setTitle('❌ Order Dibatalkan')
+          .setColor(COLORS.info)
+          .setTitle('💰 Refund Diproses')
           .setDescription(
-            `Order **${order.orderNumber}** telah dibatalkan oleh admin.\n\n**Alasan:**\n> ${reason}` +
-            (order.priceIdr > 0
-              ? `\n\nJika kamu sudah membayar **${formatIDR(order.priceIdr)}**, silakan hubungi admin untuk refund.`
-              : '')
+            `Refund untuk order **${order.orderNumber}** (${formatIDR(order.priceIdr)}) sedang diproses oleh admin.\n\n**Catatan dari admin:**\n> ${notes}`
           ),
       ],
     })
@@ -64,19 +61,19 @@ export async function handleCancelReasonModal(
     }
   }
 
-  // Log
+  // Log ke #logs
   if (guildData?.chLogs) {
     const logCh = guild.channels.cache.get(guildData.chLogs)
     if (logCh?.isTextBased()) {
       await logCh.send({
         embeds: [
           new EmbedBuilder()
-            .setColor(COLORS.error)
-            .setDescription(`❌ Order **${order.orderNumber}** dibatalkan oleh <@${interaction.user.id}>\n**Alasan:** ${reason}`),
+            .setColor(COLORS.info)
+            .setDescription(`💰 Refund order **${order.orderNumber}** diproses oleh <@${interaction.user.id}>\n**Catatan:** ${notes}`),
         ],
       })
     }
   }
 
-  await interaction.editReply({ content: `❌ Order **${order.orderNumber}** dibatalkan. Buyer sudah di-DM dengan alasannya.` })
+  await interaction.editReply({ content: `💰 Refund **${order.orderNumber}** sedang diproses. Buyer sudah di-DM.` })
 }

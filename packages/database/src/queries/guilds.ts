@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { db } from '../client'
-import { guilds } from '../schema'
+import { guilds, admins, orders, orderLogs } from '../schema'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 
 export type Guild = InferSelectModel<typeof guilds>
@@ -13,22 +13,33 @@ export async function getGuild(guildId: string) {
 }
 
 export async function upsertGuild(data: NewGuild) {
-  const [guild] = await db
+  await db
     .insert(guilds)
     .values(data)
-    .onConflictDoUpdate({
-      target: guilds.id,
-      set: { name: data.name, updatedAt: new Date() },
-    })
-    .returning()
-  return guild
+    .onDuplicateKeyUpdate({ set: { name: data.name, updatedAt: new Date() } })
+  return db.query.guilds.findFirst({ where: eq(guilds.id, data.id) })
 }
 
 export async function updateGuild(guildId: string, data: Partial<Guild>) {
-  const [guild] = await db
+  await db
     .update(guilds)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(guilds.id, guildId))
-    .returning()
-  return guild
+  return db.query.guilds.findFirst({ where: eq(guilds.id, guildId) })
+}
+
+export async function deleteGuild(guildId: string) {
+  const guildOrders = await db.query.orders.findMany({
+    where: eq(orders.guildId, guildId),
+    columns: { id: true },
+  })
+
+  if (guildOrders.length > 0) {
+    const orderIds = guildOrders.map((o) => o.id)
+    await db.delete(orderLogs).where(inArray(orderLogs.orderId, orderIds))
+    await db.delete(orders).where(eq(orders.guildId, guildId))
+  }
+
+  await db.delete(admins).where(eq(admins.guildId, guildId))
+  await db.delete(guilds).where(eq(guilds.id, guildId))
 }

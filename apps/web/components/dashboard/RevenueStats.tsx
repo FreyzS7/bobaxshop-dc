@@ -52,7 +52,7 @@ export async function RevenueStats({ preset, from: customFrom, to: customTo }: P
       AND created_at <= ${range.to}
   `)
 
-  const row = (result[0] as StatsRow[])[0]
+  const row = (result[0] as unknown as StatsRow[])[0]
   const total = Number(row?.total ?? 0)
   const completed = Number(row?.completed ?? 0)
   const cancelled = Number(row?.cancelled ?? 0)

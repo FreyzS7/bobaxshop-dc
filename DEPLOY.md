@@ -108,13 +108,10 @@ pnpm install
 ## 6. Jalankan Migrasi Database
 
 ```bash
-for f in packages/database/migrations/*.sql; do
-  echo "Running $f..."
-  mysql -u bobax -p bobaxshop < $f
-done
+mysql -u bobax -p bobaxshop < packages/database/schema.sql
 ```
 
-> Masukkan password MySQL saat diminta.
+> Masukkan password MySQL saat diminta. File `schema.sql` sudah berisi semua tabel dan kolom terbaru dalam satu file.
 
 ---
 

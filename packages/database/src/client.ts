@@ -9,7 +9,7 @@ let _db: DB | undefined
 function ensureDb(): DB {
   if (!_db) {
     const pool = mysql.createPool(process.env.DATABASE_URL!)
-    _db = drizzle(pool, { schema, mode: 'default' })
+    _db = drizzle(pool, { schema, mode: 'default' }) as unknown as DB
   }
   return _db
 }

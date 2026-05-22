@@ -3,6 +3,7 @@ import type { NextAuthConfig } from "next-auth"
 // Config ini TIDAK boleh import modul Node.js (pg, bcrypt, dll)
 // Digunakan di proxy.ts (Edge Runtime)
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   pages: {
     signIn: "/login",
   },

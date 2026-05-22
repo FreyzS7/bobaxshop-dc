@@ -10,7 +10,7 @@ const envSchema = z.object({
     .string()
     .transform((v) => v === 'true')
     .default('false'),
-  NEXTAUTH_SECRET: z.string().min(1, 'NEXTAUTH_SECRET wajib diisi'),
+  NEXTAUTH_SECRET: z.string().optional(),
   NEXTAUTH_URL: z.string().url().default('http://localhost:3000'),
   BOT_WEBHOOK_SECRET: z.string().optional(),
   WEBHOOK_PORT: z.string().transform(Number).default('3001'),

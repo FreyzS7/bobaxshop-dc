@@ -13,6 +13,7 @@ export async function handleRobuxAmountModal(
   interaction: ModalSubmitInteraction,
   method: 'gamepass' | 'community'
 ) {
+  try {
   const pending = getPendingOrder(interaction.user.id)
   if (!pending) {
     await interaction.reply({ content: '❌ Sesi habis. Mulai ulang dari tombol Beli Robux.', ephemeral: true })
@@ -111,5 +112,12 @@ export async function handleRobuxAmountModal(
       ],
       ephemeral: true,
     })
+  }
+  } catch (err: any) {
+    if (err?.code === 10062) return // interaction expired, abaikan
+    console.error('[robuxAmountModal] error:', err)
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ content: '❌ Terjadi kesalahan, coba lagi.', ephemeral: true }).catch(() => {})
+    }
   }
 }

@@ -23,6 +23,7 @@ module.exports = {
       env: {
         PORT: 3000,
         NODE_ENV: 'production',
+        AUTH_TRUST_HOST: '1',
       },
       restart_delay: 5000,
       max_restarts: 10,

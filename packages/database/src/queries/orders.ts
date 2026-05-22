@@ -51,6 +51,16 @@ export async function getPendingUnprocessedOrders() {
   })
 }
 
+export async function getActiveBuyerOrder(guildId: string, buyerId: string) {
+  return db.query.orders.findFirst({
+    where: and(
+      eq(orders.guildId, guildId),
+      eq(orders.buyerId, buyerId),
+      eq(orders.orderStatus, 'waiting_payment'),
+    ),
+  })
+}
+
 export async function getActivePendingChannelIds(guildId: string): Promise<string[]> {
   const rows = await db.query.orders.findMany({
     where: and(eq(orders.guildId, guildId), isNotNull(orders.pendingChannelId)),

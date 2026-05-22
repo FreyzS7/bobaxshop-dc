@@ -12,6 +12,7 @@ import { handleRefundReasonModal } from '../interactions/modals/refundReasonModa
 import { handleInvalidProofModal } from '../interactions/modals/invalidProofModal'
 import { handleConfirmProof } from '../interactions/buttons/confirmProofButton'
 import { handlePaymentMethodSelect } from '../interactions/selectMenus/paymentMethodMenu'
+import { handleResumeOrder, handleCancelAndNew } from '../interactions/buttons/resumeOrCancelOrder'
 
 export const name = Events.InteractionCreate
 export const once = false
@@ -41,6 +42,11 @@ export async function execute(interaction: Interaction) {
       if (id.startsWith('order_refund:')) return handleOrderAction(interaction, 'refund', id.split(':')[1])
       if (id.startsWith('confirm_proof:')) return handleConfirmProof(interaction, id.split(':')[1])
       if (id.startsWith('order_invalid_proof:')) return handleOrderAction(interaction, 'invalid_proof', id.split(':')[1])
+      if (id.startsWith('resume_order:')) return handleResumeOrder(interaction, id.split(':')[1])
+      if (id.startsWith('cancel_and_new:')) {
+        const parts = id.split(':')
+        return handleCancelAndNew(interaction, parts[1], parts[2] as 'gamepass' | 'community')
+      }
       return
     }
 

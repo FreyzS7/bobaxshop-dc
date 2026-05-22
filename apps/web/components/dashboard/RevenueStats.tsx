@@ -1,6 +1,6 @@
 import { db } from "@bobaxshop/database"
 import { sql } from "drizzle-orm"
-import { TrendingUp, ShoppingCart, CheckCircle, XCircle } from "lucide-react"
+import { TrendingUp, ShoppingCart, CheckCircle, XCircle, Coins } from "lucide-react"
 import StatsCard from "./StatsCard"
 import { formatIDR } from "@bobaxshop/shared"
 
@@ -40,13 +40,14 @@ function resolveDateRange(preset: string, customFrom?: string, customTo?: string
 export async function RevenueStats({ preset, from: customFrom, to: customTo }: Props) {
   const range = resolveDateRange(preset, customFrom, customTo)
 
-  type StatsRow = { total: number; completed: number; cancelled: number; revenue: string | null }
+  type StatsRow = { total: number; completed: number; cancelled: number; revenue: string | null; robux_out: number | null }
   const result = await db.execute<StatsRow>(sql`
     SELECT
       COUNT(*) AS total,
       SUM(order_status = 'completed') AS completed,
       SUM(order_status = 'cancelled') AS cancelled,
-      SUM(CASE WHEN payment_status = 'paid' THEN price_idr ELSE 0 END) AS revenue
+      SUM(CASE WHEN order_status = 'completed' THEN price_idr ELSE 0 END) AS revenue,
+      SUM(CASE WHEN order_status = 'completed' THEN robux_amount ELSE 0 END) AS robux_out
     FROM orders
     WHERE created_at >= ${range.from}
       AND created_at <= ${range.to}
@@ -57,14 +58,23 @@ export async function RevenueStats({ preset, from: customFrom, to: customTo }: P
   const completed = Number(row?.completed ?? 0)
   const cancelled = Number(row?.cancelled ?? 0)
   const totalRevenue = Number(row?.revenue ?? 0)
+  const robuxOut = Number(row?.robux_out ?? 0)
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
       <StatsCard
         title="Pendapatan"
         value={formatIDR(totalRevenue)}
+        sub="order selesai"
         icon={TrendingUp}
         color="text-emerald-400"
+      />
+      <StatsCard
+        title="Robux Keluar"
+        value={`${robuxOut.toLocaleString("id-ID")} R$`}
+        sub="order selesai"
+        icon={Coins}
+        color="text-yellow-400"
       />
       <StatsCard
         title="Total Order"

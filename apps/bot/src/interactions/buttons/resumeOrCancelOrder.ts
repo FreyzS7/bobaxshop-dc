@@ -80,7 +80,7 @@ export async function handleResumeOrder(interaction: ButtonInteraction, orderId:
 export async function handleCancelAndNew(
   interaction: ButtonInteraction,
   oldOrderId: string,
-  method: 'gamepass' | 'community'
+  method: 'gamepass' | 'community' | 'transfer'
 ) {
   await updateOrder(oldOrderId, { orderStatus: 'cancelled' })
   await addOrderLog(oldOrderId, 'cancelled', interaction.user.id, 'Dibatalkan oleh buyer untuk buat order baru')

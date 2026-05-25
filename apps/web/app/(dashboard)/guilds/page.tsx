@@ -44,7 +44,7 @@ export default async function GuildsPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Server size={36} className="text-muted-foreground/30 mb-3" />
             <p className="text-muted-foreground text-sm">Belum ada guild terdaftar.</p>
-            <p className="text-muted-foreground/50 text-xs mt-1">Klik "Invite Bot" di atas untuk menambahkan ke server Discord kamu.</p>
+            <p className="text-muted-foreground/50 text-xs mt-1">Klik Invite Bot di atas untuk menambahkan ke server Discord kamu.</p>
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -97,13 +97,13 @@ export default async function GuildsPage() {
 
               {guild.statusMessage && (
                 <p className="text-muted-foreground/50 text-xs mb-3 italic border-l-2 border-border pl-2">
-                  "{guild.statusMessage}"
+                  {guild.statusMessage}
                 </p>
               )}
 
               {!guild.setupDone && <SetupButton guildId={guild.id} />}
               <div className="flex gap-2 mt-1">
-                <GuildActions guildId={guild.id} guildName={guild.name} />
+                <div className="flex-1"><GuildActions guildId={guild.id} guildName={guild.name} /></div>
                 <Button asChild size="sm" variant="outline" className="flex-1">
                   <Link href={`/guilds/${guild.id}`}>
                     <Settings2 size={13} />

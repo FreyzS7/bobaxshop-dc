@@ -20,6 +20,12 @@ export async function handleBuyStart(interaction: ButtonInteraction) {
     return
   }
 
+  const enabled = {
+    community: guild.enableCommunity ?? true,
+    gamepass: guild.enableGamepass ?? true,
+    transfer: guild.enableTransfer ?? false,
+  }
+
   await interaction.editReply({
     embeds: [
       new EmbedBuilder()
@@ -27,10 +33,11 @@ export async function handleBuyStart(interaction: ButtonInteraction) {
         .setTitle('🛒 Pilih Metode Pembelian')
         .setDescription('Pilih metode yang ingin kamu gunakan:')
         .addFields(
-          { name: '🎮 Via Gamepass', value: 'Kamu buat gamepass di Roblox, lalu admin beli.', inline: false },
-          { name: '👥 Via Community Join', value: 'Admin kirim Robux via community.', inline: false },
+          ...(enabled.gamepass ? [{ name: '🎮 Via Gamepass', value: 'Kamu buat gamepass di experience Roblox, lalu admin beli.', inline: false }] : []),
+          ...(enabled.community ? [{ name: '👥 Via Community Join', value: 'Admin kirim Robux via community funds.', inline: false }] : []),
+          ...(enabled.transfer ? [{ name: '💸 Via Robux Transfer', value: `Transfer Robux langsung ke akun Roblox seller. Wajib berteman dengan **${guild.robloxUserId ?? '456687425'}**.`, inline: false }] : []),
         ),
     ],
-    components: [buildMethodRow()],
+    components: [buildMethodRow(enabled)],
   })
 }

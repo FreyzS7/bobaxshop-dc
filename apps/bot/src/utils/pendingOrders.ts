@@ -2,7 +2,7 @@ export interface PendingOrderState {
   guildId: string
   buyerId: string
   buyerUsername: string
-  method: 'gamepass' | 'community'
+  method: 'gamepass' | 'community' | 'transfer'
   robuxAmount?: number
   robuxGross?: number
   gamepassLink?: string

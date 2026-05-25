@@ -69,6 +69,12 @@ export async function getActivePendingChannelIds(guildId: string): Promise<strin
   return rows.map((r) => r.pendingChannelId!)
 }
 
+export async function getWaitingPaymentOrders() {
+  return db.query.orders.findMany({
+    where: eq(orders.orderStatus, 'waiting_payment'),
+  })
+}
+
 export async function addOrderLog(
   orderId: string,
   action: string,

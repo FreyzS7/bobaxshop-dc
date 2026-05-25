@@ -1,9 +1,9 @@
 import { db } from "@bobaxshop/database"
-import { webUsers } from "@bobaxshop/database"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Header from "@/components/layout/Header"
 import { Separator } from "@/components/ui/separator"
+import { DatabaseTools } from "./DatabaseTools"
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -44,6 +44,13 @@ export default async function SettingsPage() {
           <pre className="mt-3 bg-zinc-950 border border-zinc-800 rounded p-3 text-xs text-zinc-400 overflow-x-auto">
             {`cd apps/web\npnpm seed`}
           </pre>
+        </div>
+
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+          <h2 className="text-white font-medium mb-1">Database</h2>
+          <p className="text-zinc-500 text-sm mb-4">Export atau import seluruh data untuk keperluan backup atau migrasi server.</p>
+          <Separator className="bg-zinc-800 mb-4" />
+          <DatabaseTools />
         </div>
       </main>
     </>

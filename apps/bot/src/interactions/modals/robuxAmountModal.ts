@@ -11,7 +11,7 @@ import { updatePendingOrder, getPendingOrder } from '../../utils/pendingOrders'
 
 export async function handleRobuxAmountModal(
   interaction: ModalSubmitInteraction,
-  method: 'gamepass' | 'community'
+  method: 'gamepass' | 'community' | 'transfer'
 ) {
   try {
   const pending = getPendingOrder(interaction.user.id)
@@ -46,6 +46,8 @@ export async function handleRobuxAmountModal(
 
   const rate = method === 'gamepass' && guild.robuxRateGamepass
     ? Number(guild.robuxRateGamepass)
+    : method === 'transfer' && guild.robuxRateTransfer
+    ? Number(guild.robuxRateTransfer)
     : Number(guild.robuxRate)
 
   const robuxGross = method === 'gamepass' ? calcRobuxGross(robuxAmount) : robuxAmount
@@ -77,6 +79,33 @@ export async function handleRobuxAmountModal(
           '1. Experience harus **Public**, **Rated**, dan **tercantum di profil** kamu',
           '2. Buat **Gamepass** di dalam experience tersebut dengan harga yang sudah ditentukan',
           '3. Pastikan gamepass sudah **aktif** dan bisa dibeli',
+        ].join('\n'),
+        inline: false,
+      },
+      { name: '\u200B', value: '⬇️ Klik tombol di bawah untuk input **username Roblox** kamu.', inline: false }
+    )
+
+    await interaction.reply({
+      embeds: [summaryEmbed],
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId('input_roblox_username')
+            .setLabel('👤 Input Username Roblox')
+            .setStyle(ButtonStyle.Primary)
+        ),
+      ],
+      ephemeral: true,
+    })
+  } else if (method === 'transfer') {
+    const robloxUserId = guild.robloxUserId ?? '456687425'
+    summaryEmbed.addFields(
+      {
+        name: '💸 Syarat Via Robux Transfer',
+        value: [
+          `Tambahkan akun Roblox seller sebagai **teman** terlebih dahulu agar Robux bisa dikirim langsung ke akunmu.`,
+          `> 👤 Profil Roblox Seller: https://www.roblox.com/users/${robloxUserId}/profile`,
+          `> Setelah berteman, seller akan transfer **${formatRobux(robuxAmount)} Robux** ke akunmu setelah pembayaran dikonfirmasi.`,
         ].join('\n'),
         inline: false,
       },

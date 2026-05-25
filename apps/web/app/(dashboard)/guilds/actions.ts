@@ -46,6 +46,22 @@ export async function kickBot(guildId: string): Promise<{ success: boolean; mess
   }
 }
 
+export async function deployBuyEmbed(guildId: string): Promise<{ success: boolean; message: string }> {
+  const { url, secret } = getBotApi()
+
+  try {
+    const res = await fetch(`${url}/api/setbuy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${secret}` },
+      body: JSON.stringify({ guildId }),
+    })
+
+    return await res.json() as { success: boolean; message: string }
+  } catch {
+    return { success: false, message: 'Bot tidak dapat dihubungi. Pastikan bot sedang berjalan.' }
+  }
+}
+
 export async function wipeGuild(guildId: string): Promise<{ success: boolean; message: string }> {
   const { url, secret } = getBotApi()
 

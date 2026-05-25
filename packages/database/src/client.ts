@@ -8,7 +8,19 @@ let _db: DB | undefined
 
 function ensureDb(): DB {
   if (!_db) {
-    const pool = mysql.createPool(process.env.DATABASE_URL!)
+    const dbUrl = new URL(process.env.DATABASE_URL!)
+    const pool = mysql.createPool({
+      host: dbUrl.hostname,
+      port: dbUrl.port ? Number(dbUrl.port) : 3306,
+      user: dbUrl.username || 'root',
+      password: dbUrl.password || undefined,
+      database: dbUrl.pathname.replace('/', ''),
+      timezone: '+00:00',
+    })
+    // Set MySQL session timezone ke UTC agar timestamp konsisten dengan Date.now()
+    pool.on('connection', (conn) => {
+      conn.query("SET time_zone = '+00:00'")
+    })
     _db = drizzle(pool, { schema, mode: 'default' }) as unknown as DB
   }
   return _db

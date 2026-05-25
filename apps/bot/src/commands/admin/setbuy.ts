@@ -34,8 +34,21 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return
   }
 
+  const enabled = {
+    community: guild.enableCommunity ?? true,
+    gamepass: guild.enableGamepass ?? true,
+    transfer: guild.enableTransfer ?? false,
+  }
+
   await buyChannel.send({
-    embeds: [buildBuyEmbed(Number(guild.robuxRate), guild.minRobux ?? 1000, guild.stepRobux ?? 500, guild.robuxRateGamepass ? Number(guild.robuxRateGamepass) : undefined)],
+    embeds: [buildBuyEmbed(
+      Number(guild.robuxRate),
+      guild.minRobux ?? 1000,
+      guild.stepRobux ?? 500,
+      guild.robuxRateGamepass ? Number(guild.robuxRateGamepass) : undefined,
+      guild.robuxRateTransfer ? Number(guild.robuxRateTransfer) : undefined,
+      enabled,
+    )],
     components: [buildBuyButtonRow()],
   })
 

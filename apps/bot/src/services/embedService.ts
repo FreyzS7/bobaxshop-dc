@@ -2,23 +2,31 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'disc
 import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
 import type { Order } from '@bobaxshop/database'
 
-export function buildBuyEmbed(robuxRate: number, minRobux = 1000, stepRobux = 500, robuxRateGamepass?: number) {
-  const hasGamepassRate = robuxRateGamepass && robuxRateGamepass !== robuxRate
+export function buildBuyEmbed(
+  robuxRate: number,
+  minRobux = 1000,
+  stepRobux = 500,
+  robuxRateGamepass?: number,
+  robuxRateTransfer?: number,
+  enabledMethods: { community: boolean; gamepass: boolean; transfer: boolean } = { community: true, gamepass: true, transfer: false },
+) {
+  const rateFields: { name: string; value: string; inline: boolean }[] = []
+  if (enabledMethods.community) rateFields.push({ name: '👥 Rate Community', value: `**${formatIDR(robuxRate)}** per Robux`, inline: true })
+  if (enabledMethods.gamepass) rateFields.push({ name: '🎮 Rate Gamepass', value: `**${formatIDR(robuxRateGamepass ?? robuxRate)}** per Robux`, inline: true })
+  if (enabledMethods.transfer) rateFields.push({ name: '💸 Rate Transfer', value: `**${formatIDR(robuxRateTransfer ?? robuxRate)}** per Robux`, inline: true })
+
+  const methodLines: string[] = []
+  if (enabledMethods.gamepass) methodLines.push('• **Via Gamepass** — Buat gamepass di experience Roblox')
+  if (enabledMethods.community) methodLines.push('• **Via Community Join** — Join grup Roblox')
+  if (enabledMethods.transfer) methodLines.push('• **Via Robux Transfer** — Transfer Robux langsung (harus berteman)')
 
   return new EmbedBuilder()
     .setColor(COLORS.info)
     .setTitle('🛒 Beli Robux — BobaxShop')
     .setDescription('Beli Robux dengan harga terpercaya dan aman!\n\nKlik tombol di bawah untuk mulai transaksi.')
     .addFields(
-      { name: '👥 Rate Community', value: `**${formatIDR(robuxRate)}** per Robux`, inline: true },
-      ...(hasGamepassRate
-        ? [{ name: '🎮 Rate Gamepass', value: `**${formatIDR(robuxRateGamepass!)}** per Robux`, inline: true }]
-        : []),
-      {
-        name: '🎮 Metode',
-        value: '• **Via Gamepass** — Buyer buat gamepass di experience\n• **Via Community Join** — Buyer join grup Roblox',
-        inline: false,
-      },
+      ...rateFields,
+      { name: '🎮 Metode', value: methodLines.join('\n'), inline: false },
       { name: '📌 Ketentuan', value: `Min. **${formatRobux(minRobux)} Robux** • Kelipatan **${formatRobux(stepRobux)}**`, inline: false },
     )
     .setFooter({ text: 'BobaxShop • Transaksi aman & terpercaya' })
@@ -33,17 +41,24 @@ export function buildBuyButtonRow() {
   )
 }
 
-export function buildMethodRow() {
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId('method_gamepass')
-      .setLabel('🎮 Via Gamepass')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('method_community')
-      .setLabel('👥 Via Community Join')
-      .setStyle(ButtonStyle.Secondary)
+export function buildMethodRow(
+  enabled: { community: boolean; gamepass: boolean; transfer: boolean } = { community: true, gamepass: true, transfer: false }
+) {
+  const buttons: ButtonBuilder[] = []
+  if (enabled.gamepass) buttons.push(
+    new ButtonBuilder().setCustomId('method_gamepass').setLabel('🎮 Via Gamepass').setStyle(ButtonStyle.Secondary)
   )
+  if (enabled.community) buttons.push(
+    new ButtonBuilder().setCustomId('method_community').setLabel('👥 Via Community Join').setStyle(ButtonStyle.Secondary)
+  )
+  if (enabled.transfer) buttons.push(
+    new ButtonBuilder().setCustomId('method_transfer').setLabel('💸 Via Robux Transfer').setStyle(ButtonStyle.Secondary)
+  )
+  // Fallback jika semua dimatikan
+  if (buttons.length === 0) buttons.push(
+    new ButtonBuilder().setCustomId('method_community').setLabel('👥 Via Community Join').setStyle(ButtonStyle.Secondary)
+  )
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons)
 }
 
 export function buildGamepassLinkButtonRow() {
@@ -61,7 +76,7 @@ export function buildWaitingPaymentEmbed(order: Order, paymentMethod: string) {
     .setTitle(`⏳ Menunggu Pembayaran — ${order.orderNumber}`)
     .addFields(
       { name: '🧾 Order ID', value: order.orderNumber, inline: true },
-      { name: '🎮 Metode', value: order.method === 'gamepass' ? 'Via Gamepass' : 'Via Community', inline: true },
+      { name: '🎮 Metode', value: order.method === 'gamepass' ? 'Via Gamepass' : order.method === 'transfer' ? 'Via Robux Transfer' : 'Via Community', inline: true },
       { name: '💳 Robux', value: `**${formatRobux(order.robuxAmount)}** Robux`, inline: true },
       ...(order.method === 'gamepass'
         ? [{ name: '🎯 Set Harga Gamepass', value: `**${formatRobux(order.robuxGross)}** Robux (termasuk tax 30%)`, inline: false }]
@@ -95,7 +110,7 @@ export function buildOrderAdminEmbed(order: Order) {
     .setTitle(`📦 Order Baru — ${order.orderNumber}`)
     .addFields(
       { name: '👤 Buyer', value: `<@${order.buyerId}> (${order.buyerUsername})`, inline: true },
-      { name: '🎮 Metode', value: order.method === 'gamepass' ? 'Via Gamepass' : 'Via Community', inline: true },
+      { name: '🎮 Metode', value: order.method === 'gamepass' ? 'Via Gamepass' : order.method === 'transfer' ? 'Via Robux Transfer' : 'Via Community', inline: true },
       { name: '💳 Robux (net)', value: formatRobux(order.robuxAmount), inline: true },
       { name: '💳 Robux (gross)', value: formatRobux(order.robuxGross), inline: true },
       { name: '💰 Total', value: formatIDR(order.priceIdr), inline: true },

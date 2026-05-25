@@ -2,6 +2,7 @@
 
 import { useTransition, useState } from "react"
 import { saveGuildConfig } from "./actions"
+import { deployBuyEmbed } from "../actions"
 import type { Guild } from "@bobaxshop/database"
 
 interface Props { guild: Guild }
@@ -39,6 +40,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function GuildConfigForm({ guild }: Props) {
   const [pending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
+  const [deploying, setDeploying] = useState(false)
+  const [deployMsg, setDeployMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function handleDeploy() {
+    setDeploying(true)
+    setDeployMsg(null)
+    const res = await deployBuyEmbed(guild.id)
+    setDeployMsg({ ok: res.success, text: res.message })
+    setDeploying(false)
+    setTimeout(() => setDeployMsg(null), 4000)
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -56,9 +68,40 @@ export function GuildConfigForm({ guild }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Rate Community (IDR per 1000 Robux)" name="robuxRate" defaultValue={guild.robuxRate} placeholder="120000" />
           <Field label="Rate Gamepass (IDR per 1000 Robux)" name="robuxRateGamepass" defaultValue={guild.robuxRateGamepass} placeholder="kosong = sama dengan Community" />
+          <Field label="Rate Transfer (IDR per 1000 Robux)" name="robuxRateTransfer" defaultValue={guild.robuxRateTransfer} placeholder="kosong = sama dengan Community" />
           <Field label="Min Robux" name="minRobux" defaultValue={guild.minRobux} type="number" />
           <Field label="Step Robux (kelipatan)" name="stepRobux" defaultValue={guild.stepRobux} type="number" />
           <Field label="Tax %" name="taxPercent" defaultValue={guild.taxPercent} placeholder="30" />
+        </div>
+      </Section>
+
+      <Section title="Metode Transaksi">
+        <p className="text-xs text-muted-foreground -mt-1">Aktifkan metode yang tersedia untuk buyer di server ini.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {(["community", "gamepass", "transfer"] as const).map((m) => {
+            const labels = { community: "Via Community Join", gamepass: "Via Gamepass", transfer: "Via Robux Transfer" }
+            const defaults = { community: guild.enableCommunity ?? true, gamepass: guild.enableGamepass ?? true, transfer: guild.enableTransfer ?? false }
+            return (
+              <div key={m} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`enable_${m}`}
+                  name={`enable_${m}`}
+                  defaultChecked={defaults[m]}
+                  className="rounded border-border"
+                />
+                <label htmlFor={`enable_${m}`} className="text-sm text-foreground">{labels[m]}</label>
+              </div>
+            )
+          })}
+        </div>
+        <Field label="Roblox User ID Seller (untuk Via Transfer)" name="robloxUserId" defaultValue={guild.robloxUserId} placeholder="456687425" />
+      </Section>
+
+      <Section title="Auto-Cancel">
+        <p className="text-xs text-muted-foreground -mt-1">Order yang masih menunggu pembayaran lebih dari durasi ini akan otomatis dibatalkan oleh bot.</p>
+        <div className="w-48">
+          <Field label="Durasi (menit)" name="autoCancelMinutes" defaultValue={guild.autoCancelMinutes ?? 360} type="number" placeholder="360" />
         </div>
       </Section>
 
@@ -103,7 +146,7 @@ export function GuildConfigForm({ guild }: Props) {
         </div>
       </Section>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <button
           type="submit"
           disabled={pending}
@@ -112,6 +155,19 @@ export function GuildConfigForm({ guild }: Props) {
           {pending ? "Menyimpan..." : "Simpan Perubahan"}
         </button>
         {saved && <span className="text-sm text-green-400">✓ Tersimpan</span>}
+        <button
+          type="button"
+          onClick={handleDeploy}
+          disabled={deploying}
+          className="px-5 py-2 rounded-md border border-border bg-background text-foreground text-sm font-medium disabled:opacity-50 hover:bg-accent transition-colors"
+        >
+          {deploying ? "Mengirim..." : "🚀 Deploy Buy Button"}
+        </button>
+        {deployMsg && (
+          <span className={`text-sm ${deployMsg.ok ? "text-green-400" : "text-red-400"}`}>
+            {deployMsg.ok ? "✓" : "✗"} {deployMsg.text}
+          </span>
+        )}
       </div>
     </form>
   )

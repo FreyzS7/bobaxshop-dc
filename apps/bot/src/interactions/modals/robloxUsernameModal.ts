@@ -40,6 +40,12 @@ export async function handleRobloxUsernameModal(interaction: ModalSubmitInteract
 
   updatePendingOrder(interaction.user.id, { robloxUsername: robloxUser.name })
 
+  const methodNote = pending.method === 'transfer'
+    ? '> Setelah pembayaran dikonfirmasi, seller akan mengirim Robux langsung ke akunmu via Robux Transfer. Pastikan kamu sudah **berteman** dengan akun seller.'
+    : pending.method === 'gamepass'
+    ? '> Pastikan **Gamepass sudah aktif** di experience yang public, rated, dan tercantum di profil kamu.'
+    : '> Akun Roblox kamu **wajib sudah bergabung dengan group community minimal 5 hari** sebelum bisa menerima Robux.'
+
   const embed = new EmbedBuilder()
     .setColor(COLORS.info)
     .setTitle('📋 Ringkasan Order')
@@ -47,11 +53,7 @@ export async function handleRobloxUsernameModal(interaction: ModalSubmitInteract
       { name: '💳 Robux yang kamu terima', value: `**${formatRobux(pending.robuxAmount!)} Robux**`, inline: true },
       { name: '💰 Total Bayar', value: `**${formatIDR(pending.priceIdr!)}**`, inline: true },
       { name: '👤 Username Roblox', value: `**${robloxUser.name}** (ID: ${robloxUser.id})`, inline: false },
-      {
-        name: '⚠️ PENTING — Syarat Community',
-        value: '> Akun Roblox kamu **wajib sudah bergabung dengan group community minimal 5 hari** sebelum bisa menerima Robux.\n> Jika belum memenuhi syarat, order akan otomatis dibatalkan.',
-        inline: false,
-      },
+      { name: '⚠️ PENTING', value: methodNote, inline: false },
       { name: '\u200B', value: 'Pilih metode pembayaran:', inline: false },
     )
 

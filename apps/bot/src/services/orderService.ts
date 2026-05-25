@@ -12,9 +12,10 @@ export async function createDraftOrder(state: PendingOrderState, paymentMethod: 
   const guild = await getGuild(state.guildId)
   if (!guild?.robuxRate) throw new Error('Rate belum diset')
 
-  // Gamepass pakai rate gamepass jika ada, fallback ke rate community
   const rate = state.method === 'gamepass' && guild.robuxRateGamepass
     ? Number(guild.robuxRateGamepass)
+    : state.method === 'transfer' && guild.robuxRateTransfer
+    ? Number(guild.robuxRateTransfer)
     : Number(guild.robuxRate)
 
   const robuxAmount = state.robuxAmount!

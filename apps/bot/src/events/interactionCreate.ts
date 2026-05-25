@@ -34,6 +34,7 @@ export async function execute(interaction: Interaction) {
       if (id === 'buy_start') return handleBuyStart(interaction)
       if (id === 'method_gamepass') return handleMethodSelect(interaction, 'gamepass')
       if (id === 'method_community') return handleMethodSelect(interaction, 'community')
+      if (id === 'method_transfer') return handleMethodSelect(interaction, 'transfer')
       if (id === 'input_roblox_username') return handleInputRobloxUsername(interaction)
       if (id === 'pay_qris') return handlePayQris(interaction)
       if (id.startsWith('order_done:')) return handleOrderAction(interaction, 'done', id.split(':')[1])
@@ -45,7 +46,7 @@ export async function execute(interaction: Interaction) {
       if (id.startsWith('resume_order:')) return handleResumeOrder(interaction, id.split(':')[1])
       if (id.startsWith('cancel_and_new:')) {
         const parts = id.split(':')
-        return handleCancelAndNew(interaction, parts[1], parts[2] as 'gamepass' | 'community')
+        return handleCancelAndNew(interaction, parts[1], parts[2] as 'gamepass' | 'community' | 'transfer')
       }
       return
     }
@@ -55,7 +56,7 @@ export async function execute(interaction: Interaction) {
       const id = interaction.customId
 
       if (id.startsWith('modal_robux_amount:')) {
-        const method = id.split(':')[1] as 'gamepass' | 'community'
+        const method = id.split(':')[1] as 'gamepass' | 'community' | 'transfer'
         return handleRobuxAmountModal(interaction, method)
       }
 if (id === 'modal_roblox_username') return handleRobloxUsernameModal(interaction)

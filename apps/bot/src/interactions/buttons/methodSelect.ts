@@ -12,7 +12,7 @@ import { setPendingOrder } from '../../utils/pendingOrders'
 import { getGuild, getActiveBuyerOrder } from '@bobaxshop/database'
 import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
 
-export async function handleMethodSelect(interaction: ButtonInteraction, method: 'gamepass' | 'community') {
+export async function handleMethodSelect(interaction: ButtonInteraction, method: 'gamepass' | 'community' | 'transfer') {
   const guildId = interaction.guild!.id
 
   // Cek apakah buyer punya order waiting_payment yang belum diselesaikan
@@ -45,7 +45,7 @@ export async function handleMethodSelect(interaction: ButtonInteraction, method:
   await showRobuxAmountModal(interaction, method)
 }
 
-export async function showRobuxAmountModal(interaction: ButtonInteraction, method: 'gamepass' | 'community') {
+export async function showRobuxAmountModal(interaction: ButtonInteraction, method: 'gamepass' | 'community' | 'transfer') {
   setPendingOrder(interaction.user.id, {
     guildId: interaction.guild!.id,
     buyerId: interaction.user.id,

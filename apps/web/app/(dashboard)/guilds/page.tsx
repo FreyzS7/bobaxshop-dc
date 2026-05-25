@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { SetupButton } from "./SetupButton"
 import { GuildActions } from "./GuildActions"
-import { Server, CheckCircle, Clock, ShoppingCart, Plus } from "lucide-react"
+import { Server, CheckCircle, Clock, ShoppingCart, Plus, Settings2 } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID}&permissions=8&scope=bot%20applications.commands`
@@ -101,7 +102,15 @@ export default async function GuildsPage() {
               )}
 
               {!guild.setupDone && <SetupButton guildId={guild.id} />}
-              <GuildActions guildId={guild.id} guildName={guild.name} />
+              <div className="flex gap-2 mt-1">
+                <GuildActions guildId={guild.id} guildName={guild.name} />
+                <Button asChild size="sm" variant="outline" className="flex-1">
+                  <Link href={`/guilds/${guild.id}`}>
+                    <Settings2 size={13} />
+                    Config
+                  </Link>
+                </Button>
+              </div>
             </Card>
           ))}
         </div>

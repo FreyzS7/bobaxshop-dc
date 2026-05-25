@@ -6,6 +6,12 @@ import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 export type Guild = InferSelectModel<typeof guilds>
 export type NewGuild = InferInsertModel<typeof guilds>
 
+export async function getAllGuilds() {
+  return db.query.guilds.findMany({
+    columns: { id: true, name: true },
+  })
+}
+
 export async function getGuild(guildId: string) {
   return db.query.guilds.findFirst({
     where: eq(guilds.id, guildId),

@@ -8,6 +8,7 @@ interface Props {
   preset: string
   from?: string
   to?: string
+  guildId?: string
 }
 
 function resolveDateRange(preset: string, customFrom?: string, customTo?: string) {
@@ -37,7 +38,7 @@ function resolveDateRange(preset: string, customFrom?: string, customTo?: string
   return { from: fmt(from), to: fmt(now) }
 }
 
-export async function RevenueStats({ preset, from: customFrom, to: customTo }: Props) {
+export async function RevenueStats({ preset, from: customFrom, to: customTo, guildId }: Props) {
   const range = resolveDateRange(preset, customFrom, customTo)
 
   type StatsRow = { total: number; completed: number; cancelled: number; revenue: string | null; robux_out: number | null }
@@ -51,6 +52,7 @@ export async function RevenueStats({ preset, from: customFrom, to: customTo }: P
     FROM orders
     WHERE created_at >= ${range.from}
       AND created_at <= ${range.to}
+      ${guildId ? sql`AND guild_id = ${guildId}` : sql``}
   `)
 
   const row = (result[0] as unknown as StatsRow[])[0]

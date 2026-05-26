@@ -82,8 +82,18 @@ export async function handleCancelAndNew(
   oldOrderId: string,
   method: 'gamepass' | 'community' | 'transfer'
 ) {
-  await updateOrder(oldOrderId, { orderStatus: 'cancelled' })
+  const order = await getOrder(oldOrderId)
+
+  await updateOrder(oldOrderId, { orderStatus: 'cancelled', pendingChannelId: null })
   await addOrderLog(oldOrderId, 'cancelled', interaction.user.id, 'Dibatalkan oleh buyer untuk buat order baru')
+
+  // Hapus pending channel jika ada
+  if (order?.pendingChannelId) {
+    const channel = interaction.guild?.channels.cache.get(order.pendingChannelId)
+    if (channel) {
+      await channel.delete(`Order ${order.orderNumber} dibatalkan oleh buyer`).catch(() => null)
+    }
+  }
 
   await showRobuxAmountModal(interaction, method)
 }

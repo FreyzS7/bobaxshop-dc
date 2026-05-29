@@ -29,6 +29,7 @@ export async function saveGuildConfig(guildId: string, formData: FormData) {
     chLogs: get("chLogs"),
     chCommands: get("chCommands"),
     chAnnounce: get("chAnnounce"),
+    chPaymentLog: get("chPaymentLog"),
     categoryId: get("categoryId"),
     pendingCatId: get("pendingCatId"),
   })

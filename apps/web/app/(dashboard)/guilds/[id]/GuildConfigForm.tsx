@@ -141,6 +141,7 @@ export function GuildConfigForm({ guild }: Props) {
           <Field label="Channel Logs" name="chLogs" defaultValue={guild.chLogs} placeholder="Channel ID" />
           <Field label="Channel Commands" name="chCommands" defaultValue={guild.chCommands} placeholder="Channel ID" />
           <Field label="Channel Announce" name="chAnnounce" defaultValue={guild.chAnnounce} placeholder="Channel ID" />
+          <Field label="Channel Payment Log" name="chPaymentLog" defaultValue={guild.chPaymentLog} placeholder="Channel ID" />
           <Field label="Kategori Utama" name="categoryId" defaultValue={guild.categoryId} placeholder="Category ID" />
           <Field label="Kategori Pending Orders" name="pendingCatId" defaultValue={guild.pendingCatId} placeholder="Category ID" />
         </div>

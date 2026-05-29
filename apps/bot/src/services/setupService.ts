@@ -16,9 +16,9 @@ export async function runSetup(client: Client, guildId: string): Promise<SetupRe
 
   const existing = await getGuild(guildId)
 
-  // Block if setupDone AND category channel still exists in Discord
+  // Jika setup sudah done dan category masih ada, cukup buat channel yang belum ada
   if (existing?.setupDone && existing.categoryId && discordGuild.channels.cache.has(existing.categoryId)) {
-    return { success: false, message: 'Setup sudah dilakukan dan channel masih ada di server.' }
+    return await ensureMissingChannels(discordGuild, guildId, existing)
   }
 
   // Safety guard: block if a "BobaxShop" category exists in Discord by name
@@ -48,11 +48,12 @@ export async function runSetup(client: Client, guildId: string): Promise<SetupRe
       ],
     })
 
-    const [chCommands, chLogs, chAnnounce, chOrder] = await Promise.all([
+    const [chCommands, chLogs, chAnnounce, chOrder, chPaymentLog] = await Promise.all([
       createChannel(discordGuild, '💬commands', category.id, adminRole.id, true),
       createChannel(discordGuild, '📋logs', category.id, adminRole.id, true),
       createChannel(discordGuild, '📢announce', category.id, adminRole.id, false),
       createChannel(discordGuild, '📦order', category.id, adminRole.id, true),
+      createChannel(discordGuild, '💰payment-log', category.id, adminRole.id, false),
     ])
 
     const chBuy = await discordGuild.channels.create({
@@ -83,6 +84,7 @@ export async function runSetup(client: Client, guildId: string): Promise<SetupRe
       chAnnounce: chAnnounce.id,
       chOrder: chOrder.id,
       chBuy: chBuy.id,
+      chPaymentLog: chPaymentLog.id,
       pendingCatId: pendingCat.id,
     })
 
@@ -116,6 +118,7 @@ export async function teardownGuild(client: Client, guildId: string): Promise<Se
       guildData.chAnnounce,
       guildData.chOrder,
       guildData.chBuy,
+      guildData.chPaymentLog,
     ].filter((id): id is string => !!id)
 
     // Delete text channels first (must be before categories)
@@ -151,6 +154,7 @@ export async function teardownGuild(client: Client, guildId: string): Promise<Se
       chAnnounce: null,
       chOrder: null,
       chBuy: null,
+      chPaymentLog: null,
     })
   }
 
@@ -160,6 +164,48 @@ export async function teardownGuild(client: Client, guildId: string): Promise<Se
   }
 
   return { success: true, message: `Bot berhasil keluar dari "${guildName}" dan semua channel telah dihapus.` }
+}
+
+async function ensureMissingChannels(
+  discordGuild: import('discord.js').Guild,
+  guildId: string,
+  existing: import('@bobaxshop/database').Guild
+): Promise<SetupResult> {
+  const updates: Partial<import('@bobaxshop/database').Guild> = {}
+  const created: string[] = []
+
+  const adminRole = existing.adminRoleId
+    ? discordGuild.roles.cache.get(existing.adminRoleId)
+    : discordGuild.roles.cache.find((r) => r.name === 'Administration')
+
+  if (!adminRole || !existing.categoryId) {
+    return { success: false, message: 'Admin role atau category tidak ditemukan.' }
+  }
+
+  // Daftar channel yang perlu dicek
+  const checks: { key: keyof typeof updates; name: string; adminOnly: boolean }[] = [
+    { key: 'chPaymentLog', name: '💰payment-log', adminOnly: false },
+    { key: 'chLogs',       name: '📋logs',         adminOnly: true },
+    { key: 'chAnnounce',   name: '📢announce',     adminOnly: false },
+    { key: 'chOrder',      name: '📦order',         adminOnly: true },
+    { key: 'chCommands',   name: '💬commands',     adminOnly: true },
+  ]
+
+  for (const { key, name, adminOnly } of checks) {
+    const currentId = existing[key] as string | null
+    if (!currentId || !discordGuild.channels.cache.has(currentId)) {
+      const ch = await createChannel(discordGuild, name, existing.categoryId, adminRole.id, adminOnly)
+      ;(updates as any)[key] = ch.id
+      created.push(name)
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return { success: true, message: 'Semua channel sudah ada, tidak ada yang perlu dibuat.' }
+  }
+
+  await updateGuild(guildId, updates)
+  return { success: true, message: `Channel baru dibuat: ${created.join(', ')}` }
 }
 
 async function createChannel(guild: Guild, name: string, categoryId: string, adminRoleId: string, adminOnly: boolean) {

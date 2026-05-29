@@ -36,6 +36,7 @@ export const guilds = mysqlTable('guilds', {
   chAnnounce: varchar('ch_announce', { length: 32 }),
   chOrder: varchar('ch_order', { length: 32 }),
   chBuy: varchar('ch_buy', { length: 32 }),
+  chPaymentLog: varchar('ch_payment_log', { length: 32 }),
   pendingCatId: varchar('pending_cat_id', { length: 32 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

@@ -1,6 +1,6 @@
 import { type ButtonInteraction, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js'
 import { getOrder, updateOrder, addOrderLog } from '@bobaxshop/database'
-import { COLORS, formatRobux } from '@bobaxshop/shared'
+import { COLORS, formatRobux, formatIDR } from '@bobaxshop/shared'
 import { buildAdminActionRow } from '../../services/embedService'
 import { requireAdmin } from '../../middleware/isAdmin'
 
@@ -117,8 +117,12 @@ export async function handleOrderAction(
     // Disable buttons di embed #order
     await disableOrderEmbed(interaction, order.orderChannelMsgId)
 
-    // Log
+    // Log admin
     await sendLog(interaction, `✅ Order **${order.orderNumber}** diselesaikan oleh <@${interaction.user.id}>`, COLORS.success)
+
+    // Payment log (public)
+    await sendPaymentLog(interaction, order)
+
     await interaction.editReply({ content: `✅ Order **${order.orderNumber}** ditandai selesai.` })
 
   } else if (action === 'pending') {
@@ -161,4 +165,31 @@ async function sendLog(interaction: ButtonInteraction, text: string, color: numb
   if (ch?.isTextBased()) {
     await ch.send({ embeds: [new EmbedBuilder().setColor(color).setDescription(text)] })
   }
+}
+
+async function sendPaymentLog(interaction: ButtonInteraction, order: Awaited<ReturnType<typeof getOrder>>) {
+  if (!order) return
+  const { getGuild } = await import('@bobaxshop/database')
+  const guild = await getGuild(interaction.guild!.id)
+  if (!guild?.chPaymentLog) return
+  const ch = interaction.guild!.channels.cache.get(guild.chPaymentLog)
+  if (!ch?.isTextBased()) return
+
+  const methodLabel: Record<string, string> = {
+    community: 'Community Join',
+    gamepass: 'Gamepass',
+    transfer: 'Robux Transfer',
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor(COLORS.success)
+    .setDescription(
+      `\`${order.buyerId}\` baru saja melakukan transaksi pembelian **${formatRobux(order.robuxAmount)} Robux** ` +
+      `via **${methodLabel[order.method] ?? order.method}** ` +
+      `sebesar **${formatIDR(order.priceIdr)}**`
+    )
+    .setFooter({ text: order.orderNumber })
+    .setTimestamp()
+
+  await ch.send({ embeds: [embed] }).catch(() => null)
 }

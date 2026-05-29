@@ -140,6 +140,9 @@ export async function handleManualProof(
   await addOrderLog(orderId, 'paid', order.buyerId, 'Bukti transfer diterima')
   await addOrderLog(orderId, 'processing', 'system', 'Order diteruskan ke admin')
 
+  // Re-fetch order supaya embed pakai status terbaru
+  const updatedOrder = (await getOrder(orderId)) ?? order
+
   // Resolve admin role mention
   const adminRole = guild.adminRoleId
     ? discordGuild.roles.cache.get(guild.adminRoleId)
@@ -165,8 +168,8 @@ export async function handleManualProof(
           const existing = await orderChannel.messages.fetch(order.orderChannelMsgId)
           await existing.edit({
             content: notifContent,
-            embeds: [buildOrderAdminEmbed(order)],
-            components: [buildAdminActionRow(order.id)],
+            embeds: [buildOrderAdminEmbed(updatedOrder)],
+            components: [buildAdminActionRow(updatedOrder.id)],
             attachments: [],
             files: [proofAttachment],
           })
@@ -177,8 +180,8 @@ export async function handleManualProof(
           // pesan lama sudah dihapus, kirim baru
           const msg = await orderChannel.send({
             content: notifContent,
-            embeds: [buildOrderAdminEmbed(order)],
-            components: [buildAdminActionRow(order.id)],
+            embeds: [buildOrderAdminEmbed(updatedOrder)],
+            components: [buildAdminActionRow(updatedOrder.id)],
             files: [proofAttachment],
             allowedMentions,
           })
@@ -187,8 +190,8 @@ export async function handleManualProof(
       } else {
         const msg = await orderChannel.send({
           content: notifContent,
-          embeds: [buildOrderAdminEmbed(order)],
-          components: [buildAdminActionRow(order.id)],
+          embeds: [buildOrderAdminEmbed(updatedOrder)],
+          components: [buildAdminActionRow(updatedOrder.id)],
           files: [proofAttachment],
           allowedMentions,
         })

@@ -79,7 +79,7 @@ export async function handlePayQris(interaction: ButtonInteraction) {
 
     } else {
       // ── MODE MANUAL ──────────────────────────────────────────────────────
-      const attachment = new AttachmentBuilder(QRIS_STATIC_PATH, { name: 'qris.png' })
+      const attachment = new AttachmentBuilder(guild?.qrisImageUrl ?? QRIS_STATIC_PATH, { name: 'qris.png' })
 
       const embed = new EmbedBuilder()
         .setColor(COLORS.pending)

@@ -6,7 +6,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from 'discord.js'
-import { getOrder, updateOrder, addOrderLog } from '@bobaxshop/database'
+import { getOrder, updateOrder, addOrderLog, getGuild } from '@bobaxshop/database'
 import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
 import { showRobuxAmountModal } from './methodSelect'
 import { fetchQrCodeImage } from '../../services/midtransService'
@@ -54,7 +54,8 @@ export async function handleResumeOrder(interaction: ButtonInteraction, orderId:
     }
   } else {
     // Manual QRIS
-    const attachment = new AttachmentBuilder(QRIS_STATIC_PATH, { name: 'qris.png' })
+    const guild = await getGuild(order.guildId)
+    const attachment = new AttachmentBuilder(guild?.qrisImageUrl ?? QRIS_STATIC_PATH, { name: 'qris.png' })
 
     const embed = new EmbedBuilder()
       .setColor(COLORS.pending)

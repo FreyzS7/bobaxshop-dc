@@ -79,7 +79,7 @@ export async function handlePaymentMethodSelect(interaction: StringSelectMenuInt
 
     } else {
       // ── MODE MANUAL ────────────────────────────────────────────────────────
-      const attachment = new AttachmentBuilder(QRIS_STATIC_PATH, { name: 'qris.png' })
+      const attachment = new AttachmentBuilder(guild?.qrisImageUrl ?? QRIS_STATIC_PATH, { name: 'qris.png' })
 
       const embed = new EmbedBuilder()
         .setColor(COLORS.pending)

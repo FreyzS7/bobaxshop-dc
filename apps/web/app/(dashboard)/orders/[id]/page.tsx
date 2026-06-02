@@ -7,6 +7,7 @@ import { formatIDR } from "@bobaxshop/shared"
 import { Separator } from "@/components/ui/separator"
 import { OrderStatusBadge } from "@/components/ui/order-status-badge"
 import { DeleteOrderButton } from "./DeleteOrderButton"
+import { EditOrderForm } from "./EditOrderForm"
 
 export default async function OrderDetailPage({
   params,
@@ -35,7 +36,19 @@ export default async function OrderDetailPage({
               <h2 className="text-white font-semibold text-lg">{order.orderNumber}</h2>
               <OrderStatusBadge status={order.orderStatus} />
             </div>
-            <DeleteOrderButton orderId={order.id} orderNumber={order.orderNumber} />
+            <div className="flex items-center gap-2">
+              <EditOrderForm
+                orderId={order.id}
+                current={{
+                  orderStatus: order.orderStatus,
+                  paymentStatus: order.paymentStatus,
+                  robloxUsername: order.robloxUsername ?? null,
+                  priceIdr: order.priceIdr,
+                  robuxAmount: order.robuxAmount,
+                }}
+              />
+              <DeleteOrderButton orderId={order.id} orderNumber={order.orderNumber} />
+            </div>
           </div>
           <Separator className="bg-zinc-800" />
           <div className="grid grid-cols-2 gap-4 text-sm">

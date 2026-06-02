@@ -27,6 +27,7 @@ export const guilds = mysqlTable('guilds', {
   enableGamepass: boolean('enable_gamepass').default(true).notNull(),
   enableTransfer: boolean('enable_transfer').default(false).notNull(),
   robloxUserId: varchar('roblox_user_id', { length: 32 }).default('456687425'),
+  qrisImageUrl: varchar('qris_image_url', { length: 1000 }),
   autoCancelMinutes: int('auto_cancel_minutes').default(360).notNull(),
   isOpen: boolean('is_open').default(true).notNull(),
   statusMessage: varchar('status_message', { length: 500 }),

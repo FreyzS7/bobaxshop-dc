@@ -26,10 +26,13 @@ export default async function OverviewPage({
     limit: 5,
   })
 
-  const rangeLabel =
-    params.preset === "custom" && params.from && params.to
-      ? `${params.from} — ${params.to}`
-      : { today: "Hari Ini", "7d": "7 Hari Terakhir", "30d": "30 Hari Terakhir", month: "Bulan Ini", all: "Semua Waktu" }[params.preset ?? "7d"] ?? "7 Hari Terakhir"
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"]
+  const p = params.preset ?? "7d"
+  const rangeLabel = p === "custom" && params.from && params.to
+    ? `${params.from} — ${params.to}`
+    : p.startsWith("month:")
+    ? (() => { const [,ym] = p.split(":"); const [y,m] = ym.split("-"); return `${MONTH_NAMES[Number(m)-1]} ${y}` })()
+    : ({ today: "Hari Ini", yesterday: "Kemarin", "7d": "7 Hari Terakhir", "30d": "30 Hari Terakhir", month: "Bulan Ini", all: "Semua Waktu" } as Record<string,string>)[p] ?? "7 Hari Terakhir"
 
   return (
     <>

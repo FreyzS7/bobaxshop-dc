@@ -25,6 +25,13 @@ function resolveDateRange(preset: string, customFrom?: string, customTo?: string
     const from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
     return { from: fmt(from), to: fmt(now) }
   }
+  if (preset === "yesterday") {
+    const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+    return {
+      from: `${fmt(y).slice(0, 10)} 00:00:00`,
+      to: `${fmt(y).slice(0, 10)} 23:59:59`,
+    }
+  }
   if (preset === "7d") {
     const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0)
     return { from: fmt(from), to: fmt(now) }
@@ -32,6 +39,13 @@ function resolveDateRange(preset: string, customFrom?: string, customTo?: string
   if (preset === "30d") {
     const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0)
     return { from: fmt(from), to: fmt(now) }
+  }
+  if (preset.startsWith("month:")) {
+    const [, ym] = preset.split(":")
+    const [y, m] = ym.split("-").map(Number)
+    const from = new Date(y, m - 1, 1, 0, 0, 0)
+    const to = new Date(y, m, 0, 23, 59, 59) // last day of month
+    return { from: fmt(from), to: fmt(to) }
   }
   // today
   const from = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)

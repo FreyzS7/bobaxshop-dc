@@ -13,12 +13,12 @@ export function buildBuyEmbed(
   const rateFields: { name: string; value: string; inline: boolean }[] = []
   if (enabledMethods.community) rateFields.push({ name: '👥 Rate Community', value: `**${formatIDR(robuxRate)}** per Robux`, inline: true })
   if (enabledMethods.gamepass) rateFields.push({ name: '🎮 Rate Gamepass', value: `**${formatIDR(robuxRateGamepass ?? robuxRate)}** per Robux`, inline: true })
-  if (enabledMethods.transfer) rateFields.push({ name: '💸 Rate Transfer', value: `**${formatIDR(robuxRateTransfer ?? robuxRate)}** per Robux`, inline: true })
+  if (enabledMethods.transfer) rateFields.push({ name: '💸 Rate Roblox Plus', value: `**${formatIDR(robuxRateTransfer ?? robuxRate)}** per Robux`, inline: true })
 
   const methodLines: string[] = []
   if (enabledMethods.gamepass) methodLines.push('• **Via Gamepass** — Buat gamepass di experience Roblox')
   if (enabledMethods.community) methodLines.push('• **Via Community Join** — Join grup Roblox')
-  if (enabledMethods.transfer) methodLines.push('• **Via Robux Transfer** — Transfer Robux langsung (harus berteman)')
+  if (enabledMethods.transfer) methodLines.push('• **Via Roblox Plus** — Transfer Robux langsung (Limit harian 5k robux)')
 
   return new EmbedBuilder()
     .setColor(COLORS.info)

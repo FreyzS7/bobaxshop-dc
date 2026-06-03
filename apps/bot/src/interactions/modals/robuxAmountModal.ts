@@ -8,6 +8,7 @@ import {
 import { getGuild } from '@bobaxshop/database'
 import { COLORS, formatIDR, formatRobux, calcRobuxGross, calcPrice } from '@bobaxshop/shared'
 import { updatePendingOrder, getPendingOrder } from '../../utils/pendingOrders'
+import { getTransferStock } from '../../services/stockService'
 
 export async function handleRobuxAmountModal(
   interaction: ModalSubmitInteraction,
@@ -42,6 +43,27 @@ export async function handleRobuxAmountModal(
       ephemeral: true,
     })
     return
+  }
+
+  // Cek stok transfer
+  if (method === 'transfer') {
+    const stock = await getTransferStock(pending.guildId)
+    if (stock !== null) {
+      if (stock.remaining <= 0) {
+        await interaction.reply({
+          content: `❌ Stok **Via Robux Transfer** hari ini sudah habis.\nCoba lagi besok atau pilih metode lain.`,
+          ephemeral: true,
+        })
+        return
+      }
+      if (robuxAmount > stock.remaining) {
+        await interaction.reply({
+          content: `❌ Sisa stok transfer hari ini hanya **${formatRobux(stock.remaining)}**. Masukkan jumlah yang tidak melebihi sisa stok.`,
+          ephemeral: true,
+        })
+        return
+      }
+    }
   }
 
   const rate = method === 'gamepass' && guild.robuxRateGamepass

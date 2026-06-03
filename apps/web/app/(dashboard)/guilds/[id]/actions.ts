@@ -24,6 +24,7 @@ export async function saveGuildConfig(guildId: string, formData: FormData) {
     enableGamepass: formData.get("enable_gamepass") === "on",
     enableTransfer: formData.get("enable_transfer") === "on",
     robloxUserId: get("robloxUserId"),
+    transferDailyLimit: get("transferDailyLimit") ? Number(get("transferDailyLimit")) : null,
     chOrder: get("chOrder"),
     chBuy: get("chBuy"),
     chLogs: get("chLogs"),

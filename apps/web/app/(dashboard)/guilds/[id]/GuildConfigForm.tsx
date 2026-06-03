@@ -96,6 +96,7 @@ export function GuildConfigForm({ guild }: Props) {
           })}
         </div>
         <Field label="Roblox User ID Seller (untuk Via Transfer)" name="robloxUserId" defaultValue={guild.robloxUserId} placeholder="456687425" />
+        <Field label="Limit Stok Harian Via Transfer (Robux, kosong = tidak terbatas)" name="transferDailyLimit" defaultValue={guild.transferDailyLimit ?? ""} type="number" placeholder="5000" />
       </Section>
 
       <Section title="Auto-Cancel">

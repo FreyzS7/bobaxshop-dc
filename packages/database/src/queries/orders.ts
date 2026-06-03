@@ -1,4 +1,4 @@
-import { eq, and, isNull, isNotNull } from 'drizzle-orm'
+import { eq, and, isNull, isNotNull, notInArray, gte, sum } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { db } from '../client'
 import { orders, orderLogs } from '../schema'
@@ -73,6 +73,23 @@ export async function getWaitingPaymentOrders() {
   return db.query.orders.findMany({
     where: eq(orders.orderStatus, 'waiting_payment'),
   })
+}
+
+export async function getTodayTransferRobuxUsed(guildId: string): Promise<number> {
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const result = await db
+    .select({ total: sum(orders.robuxAmount) })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.guildId, guildId),
+        eq(orders.method, 'transfer'),
+        notInArray(orders.orderStatus, ['cancelled', 'refunded']),
+        gte(orders.createdAt, todayStart),
+      )
+    )
+  return Number(result[0]?.total ?? 0)
 }
 
 export async function addOrderLog(

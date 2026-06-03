@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, PermissionFlagsBits, type ChatInputCommandInteraction } from 'discord.js'
 import { requireAdmin } from '../../middleware/isAdmin'
-import { getGuild } from '@bobaxshop/database'
+import { getGuild, updateGuild, getTodayTransferRobuxUsed } from '@bobaxshop/database'
 import { buildBuyEmbed, buildBuyButtonRow } from '../../services/embedService'
 
 export const data = new SlashCommandBuilder()
@@ -40,7 +40,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     transfer: guild.enableTransfer ?? false,
   }
 
-  await buyChannel.send({
+  let transferRemaining: number | undefined
+  if (enabled.transfer && guild.transferDailyLimit) {
+    const used = await getTodayTransferRobuxUsed(guild.id)
+    transferRemaining = Math.max(0, guild.transferDailyLimit - used)
+  }
+
+  const msg = await buyChannel.send({
     embeds: [buildBuyEmbed(
       Number(guild.robuxRate),
       guild.minRobux ?? 1000,
@@ -48,9 +54,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       guild.robuxRateGamepass ? Number(guild.robuxRateGamepass) : undefined,
       guild.robuxRateTransfer ? Number(guild.robuxRateTransfer) : undefined,
       enabled,
+      transferRemaining,
     )],
     components: [buildBuyButtonRow()],
   })
+
+  await updateGuild(guild.id, { buyMessageId: msg.id })
 
   await interaction.editReply('✅ Embed berhasil dikirim ke #buy.')
 }

@@ -3,6 +3,7 @@ import { getOrder, updateOrder, addOrderLog } from '@bobaxshop/database'
 import { COLORS, formatIDR } from '@bobaxshop/shared'
 import { buildAdminActionRow } from '../../services/embedService'
 import { requireAdmin } from '../../middleware/isAdmin'
+import { refreshBuyEmbed } from '../../services/stockService'
 
 export async function handleCancelReasonModal(
   interaction: ModalSubmitInteraction,
@@ -76,6 +77,10 @@ export async function handleCancelReasonModal(
         ],
       })
     }
+  }
+
+  if (order.method === 'transfer') {
+    refreshBuyEmbed(interaction.client, order.guildId).catch(() => null)
   }
 
   await interaction.editReply({ content: `❌ Order **${order.orderNumber}** dibatalkan. Buyer sudah di-DM dengan alasannya.` })

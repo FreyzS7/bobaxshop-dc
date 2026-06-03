@@ -1,6 +1,7 @@
 import { type Client, EmbedBuilder } from 'discord.js'
 import { getWaitingPaymentOrders, getGuild, updateOrder, addOrderLog } from '@bobaxshop/database'
 import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
+import { refreshBuyEmbed } from './stockService'
 
 export async function runAutoCancel(client: Client) {
   const waiting = await getWaitingPaymentOrders()
@@ -55,6 +56,10 @@ export async function runAutoCancel(client: Client) {
         await buyer.send({ embeds: [embed] })
       } catch {
         // Buyer mungkin menonaktifkan DM — abaikan
+      }
+
+      if (order.method === 'transfer') {
+        refreshBuyEmbed(client, order.guildId).catch(() => null)
       }
 
       console.log(`🕐 Auto-cancelled ${order.orderNumber} (buyer: ${order.buyerUsername}, >${expireMinutes}m)`)

@@ -12,6 +12,7 @@ import { getEnv } from '@bobaxshop/config'
 import { getPendingOrder, clearPendingOrder } from '../../utils/pendingOrders'
 import { createDraftOrder } from '../../services/orderService'
 import { createQrisTransaction, fetchQrCodeImage } from '../../services/midtransService'
+import { refreshBuyEmbed } from '../../services/stockService'
 import { resolve } from 'path'
 
 const QRIS_STATIC_PATH = resolve(__dirname, '../../../../../packages/shared/assets/qrisscan.png')
@@ -32,6 +33,10 @@ export async function handlePayQris(interaction: ButtonInteraction) {
     const order = await createDraftOrder(pending, paymentMode === 'midtrans' ? 'qris' : 'qris_manual')
     if (!order) throw new Error('Gagal menyimpan order ke database.')
     clearPendingOrder(interaction.user.id)
+
+    if (pending.method === 'transfer') {
+      refreshBuyEmbed(interaction.client, pending.guildId).catch(() => null)
+    }
 
     // Log ke #logs
     if (guild?.chLogs) {

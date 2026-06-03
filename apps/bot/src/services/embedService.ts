@@ -9,16 +9,22 @@ export function buildBuyEmbed(
   robuxRateGamepass?: number,
   robuxRateTransfer?: number,
   enabledMethods: { community: boolean; gamepass: boolean; transfer: boolean } = { community: true, gamepass: true, transfer: false },
+  transferRemaining?: number,
 ) {
   const rateFields: { name: string; value: string; inline: boolean }[] = []
   if (enabledMethods.community) rateFields.push({ name: '👥 Rate Community', value: `**${formatIDR(robuxRate)}** per Robux`, inline: true })
   if (enabledMethods.gamepass) rateFields.push({ name: '🎮 Rate Gamepass', value: `**${formatIDR(robuxRateGamepass ?? robuxRate)}** per Robux`, inline: true })
-  if (enabledMethods.transfer) rateFields.push({ name: '💸 Rate Roblox Plus', value: `**${formatIDR(robuxRateTransfer ?? robuxRate)}** per Robux`, inline: true })
+  if (enabledMethods.transfer) rateFields.push({ name: '💸 Rate Transfer', value: `**${formatIDR(robuxRateTransfer ?? robuxRate)}** per Robux`, inline: true })
 
   const methodLines: string[] = []
   if (enabledMethods.gamepass) methodLines.push('• **Via Gamepass** — Buat gamepass di experience Roblox')
   if (enabledMethods.community) methodLines.push('• **Via Community Join** — Join grup Roblox')
-  if (enabledMethods.transfer) methodLines.push('• **Via Roblox Plus** — Transfer Robux langsung (Limit harian 5k robux)')
+  if (enabledMethods.transfer) {
+    const stockLine = transferRemaining !== undefined
+      ? `• **Via Robux Transfer** — Transfer Robux langsung ⚡ Stok hari ini: **${formatRobux(transferRemaining)}**`
+      : `• **Via Robux Transfer** — Transfer Robux langsung`
+    methodLines.push(stockLine)
+  }
 
   return new EmbedBuilder()
     .setColor(COLORS.info)

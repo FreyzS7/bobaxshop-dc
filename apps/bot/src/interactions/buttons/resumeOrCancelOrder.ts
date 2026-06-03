@@ -10,6 +10,7 @@ import { getOrder, updateOrder, addOrderLog, getGuild } from '@bobaxshop/databas
 import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
 import { showRobuxAmountModal } from './methodSelect'
 import { fetchQrCodeImage } from '../../services/midtransService'
+import { refreshBuyEmbed } from '../../services/stockService'
 import { resolve } from 'path'
 
 const QRIS_STATIC_PATH = resolve(__dirname, '../../../../../packages/shared/assets/qrisscan.png')
@@ -94,6 +95,11 @@ export async function handleCancelAndNew(
     if (channel) {
       await channel.delete(`Order ${order.orderNumber} dibatalkan oleh buyer`).catch(() => null)
     }
+  }
+
+  // Refresh buy embed jika order transfer dibatalkan (stok kembali)
+  if (order?.method === 'transfer') {
+    refreshBuyEmbed(interaction.client, order.guildId).catch(() => null)
   }
 
   await showRobuxAmountModal(interaction, method)

@@ -11,6 +11,7 @@ import {
 import { setPendingOrder } from '../../utils/pendingOrders'
 import { getGuild, getActiveBuyerOrder } from '@bobaxshop/database'
 import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
+import { getTransferStock } from '../../services/stockService'
 
 export async function handleMethodSelect(interaction: ButtonInteraction, method: 'gamepass' | 'community' | 'transfer') {
   const guildId = interaction.guild!.id
@@ -46,19 +47,40 @@ export async function handleMethodSelect(interaction: ButtonInteraction, method:
 }
 
 export async function showRobuxAmountModal(interaction: ButtonInteraction, method: 'gamepass' | 'community' | 'transfer') {
+  const guildId = interaction.guild!.id
+
+  // Cek stok transfer sebelum tampilkan modal
+  if (method === 'transfer') {
+    const stock = await getTransferStock(guildId)
+    if (stock !== null && stock.remaining <= 0) {
+      await interaction.reply({
+        content: `❌ Stok **Via Robux Transfer** hari ini sudah habis (limit: **${stock.limit.toLocaleString('id-ID')} Robux**).\nCoba lagi besok atau pilih metode lain.`,
+        ephemeral: true,
+      })
+      return
+    }
+  }
+
   setPendingOrder(interaction.user.id, {
-    guildId: interaction.guild!.id,
+    guildId,
     buyerId: interaction.user.id,
     buyerUsername: interaction.user.username,
     method,
   })
 
-  const guild = await getGuild(interaction.guild!.id)
+  const guild = await getGuild(guildId)
   const minRobux = guild?.minRobux ?? 1000
   const stepRobux = guild?.stepRobux ?? 500
 
+  const stock = method === 'transfer' ? await getTransferStock(guildId) : null
+  const maxRobux = stock ? stock.remaining : undefined
+
+  const labelParts = [`min. ${minRobux.toLocaleString('id-ID')}, kelipatan ${stepRobux.toLocaleString('id-ID')}`]
+  if (stock) labelParts.push(`sisa stok: ${stock.remaining.toLocaleString('id-ID')}`)
+  const label = `Robux (${labelParts.join(' • ')})`
+
   const minChars = String(minRobux).length
-  const maxChars = 7
+  const maxChars = maxRobux ? String(maxRobux).length : 7
 
   const modal = new ModalBuilder()
     .setCustomId(`modal_robux_amount:${method}`)
@@ -67,11 +89,11 @@ export async function showRobuxAmountModal(interaction: ButtonInteraction, metho
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
           .setCustomId('robux_amount')
-          .setLabel(`Jumlah Robux (min. ${minRobux.toLocaleString('id-ID')}, kelipatan ${stepRobux.toLocaleString('id-ID')})`)
+          .setLabel(label.slice(0, 45)) // Discord label max 45 chars
           .setStyle(TextInputStyle.Short)
-          .setPlaceholder(`Contoh: ${minRobux}, ${minRobux + stepRobux}, ${minRobux + stepRobux * 2}`)
+          .setPlaceholder(maxRobux ? `${minRobux} – ${maxRobux} (kelipatan ${stepRobux})` : `Contoh: ${minRobux}, ${minRobux + stepRobux}`)
           .setMinLength(minChars)
-          .setMaxLength(maxChars)
+          .setMaxLength(Math.max(minChars, maxChars))
           .setRequired(true)
       )
     )

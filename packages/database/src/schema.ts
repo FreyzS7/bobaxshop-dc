@@ -28,6 +28,7 @@ export const guilds = mysqlTable('guilds', {
   enableTransfer: boolean('enable_transfer').default(false).notNull(),
   robloxUserId: varchar('roblox_user_id', { length: 32 }).default('456687425'),
   qrisImageUrl: varchar('qris_image_url', { length: 1000 }),
+  qrisMessageId: varchar('qris_message_id', { length: 32 }),
   transferDailyLimit: int('transfer_daily_limit'),
   buyMessageId: varchar('buy_message_id', { length: 32 }),
   autoCancelMinutes: int('auto_cancel_minutes').default(360).notNull(),

@@ -47,10 +47,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         files: [new AttachmentBuilder(attachment.url, { name: 'qris.png' })],
       })
       permanentUrl = stored.attachments.first()?.url ?? attachment.url
+      await updateGuild(interaction.guild!.id, { qrisImageUrl: permanentUrl, qrisMessageId: stored.id })
     }
   }
 
-  await updateGuild(interaction.guild!.id, { qrisImageUrl: permanentUrl })
+  if (!guild.chLogs) {
+    await updateGuild(interaction.guild!.id, { qrisImageUrl: permanentUrl })
+  }
 
   await interaction.editReply({
     embeds: [

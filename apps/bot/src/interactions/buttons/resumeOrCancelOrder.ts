@@ -11,9 +11,7 @@ import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
 import { showRobuxAmountModal } from './methodSelect'
 import { fetchQrCodeImage } from '../../services/midtransService'
 import { refreshBuyEmbed } from '../../services/stockService'
-import { resolve } from 'path'
-
-const QRIS_STATIC_PATH = resolve(__dirname, '../../../../../packages/shared/assets/qrisscan.png')
+import { getQrisAttachment } from '../../utils/qrisHelper'
 
 export async function handleResumeOrder(interaction: ButtonInteraction, orderId: string) {
   await interaction.deferReply({ ephemeral: true })
@@ -56,7 +54,7 @@ export async function handleResumeOrder(interaction: ButtonInteraction, orderId:
   } else {
     // Manual QRIS
     const guild = await getGuild(order.guildId)
-    const attachment = new AttachmentBuilder(guild?.qrisImageUrl ?? QRIS_STATIC_PATH, { name: 'qris.png' })
+    const attachment = await getQrisAttachment(interaction.client, guild)
 
     const embed = new EmbedBuilder()
       .setColor(COLORS.pending)

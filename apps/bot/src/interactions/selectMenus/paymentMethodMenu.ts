@@ -10,13 +10,9 @@ import { COLORS, formatIDR, formatRobux } from '@bobaxshop/shared'
 import { getPendingOrder, clearPendingOrder } from '../../utils/pendingOrders'
 import { createDraftOrder } from '../../services/orderService'
 import { getGuild, updateOrder } from '@bobaxshop/database'
-import { buildWaitingPaymentEmbed } from '../../services/embedService'
-import { handlePaymentSuccess } from '../../services/paymentCallbackService'
 import { createQrisTransaction, fetchQrCodeImage } from '../../services/midtransService'
 import { refreshBuyEmbed } from '../../services/stockService'
-import { resolve } from 'path'
-
-const QRIS_STATIC_PATH = resolve(__dirname, '../../../../../packages/shared/assets/qrisscan.png')
+import { getQrisAttachment } from '../../utils/qrisHelper'
 
 export async function handlePaymentMethodSelect(interaction: StringSelectMenuInteraction) {
   const pending = getPendingOrder(interaction.user.id)
@@ -85,7 +81,7 @@ export async function handlePaymentMethodSelect(interaction: StringSelectMenuInt
 
     } else {
       // ── MODE MANUAL ────────────────────────────────────────────────────────
-      const attachment = new AttachmentBuilder(guild?.qrisImageUrl ?? QRIS_STATIC_PATH, { name: 'qris.png' })
+      const attachment = await getQrisAttachment(interaction.client, guild)
 
       const embed = new EmbedBuilder()
         .setColor(COLORS.pending)
